@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Book of Change · Derivatives</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Amiri&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #d4a843;
+    --gold-light: #e8c97a;
+    --parchment: #f0e6cc;
+    --sand: #c9b896;
+    --ink: #1a1610;
+    --deep: #0e0c08;
+    --rust: #8b3a1a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: var(--parchment);
+    font-family: 'IM Fell English', serif;
+    min-height: 100vh;
+    padding: 30px 20px;
+  }
+
+  .container { max-width: 760px; margin: 0 auto; }
+
+  .title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    opacity: 0.7;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.3rem;
+    color: var(--gold-light);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    color: var(--sand);
+    text-align: center;
+    font-size: 0.95rem;
+    opacity: 0.8;
+    margin-bottom: 30px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
+  }
+  .divider-line { flex: 1; height: 1px; background: rgba(212,168,67,0.2); }
+  .divider-diamond { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); opacity: 0.5; }
+
+  /* Controls */
+  .controls {
+    background: rgba(212,168,67,0.04);
+    border: 1px solid rgba(212,168,67,0.2);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .control-row:last-child { margin-bottom: 0; }
+
+  label {
+    font-family: 'Amiri', serif;
+    font-size: 0.9rem;
+    color: var(--sand);
+    min-width: 160px;
+    letter-spacing: 0.05em;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    min-width: 120px;
+    accent-color: var(--gold);
+    cursor: pointer;
+  }
+
+  .val {
+    font-family: 'Amiri', serif;
+    color: var(--gold-light);
+    font-size: 1rem;
+    min-width: 50px;
+    text-align: right;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  button {
+    font-family: 'Amiri', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    padding: 8px 18px;
+    border: 1px solid rgba(212,168,67,0.4);
+    background: rgba(212,168,67,0.06);
+    color: var(--sand);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  button:hover {
+    background: rgba(212,168,67,0.15);
+    color: var(--gold-light);
+    border-color: var(--gold);
+  }
+
+  button.active {
+    background: rgba(212,168,67,0.2);
+    color: var(--gold-light);
+    border-color: var(--gold);
+  }
+
+  /* Canvas panels */
+  .panel {
+    border: 1px solid rgba(212,168,67,0.2);
+    padding: 20px;
+    margin-bottom: 18px;
+    background: rgba(212,168,67,0.02);
+    position: relative;
+  }
+
+  .panel-label {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-bottom: 12px;
+  }
+
+  canvas {
+    width: 100%;
+    height: 180px;
+    display: block;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(212,168,67,0.1);
+  }
+
+  .panel-note {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--sand);
+    opacity: 0.7;
+    margin-top: 10px;
+  }
+
+  /* Insight box */
+  .insight {
+    border: 1px solid rgba(212,168,67,0.25);
+    padding: 18px 22px;
+    background: rgba(212,168,67,0.04);
+    margin-top: 8px;
+  }
+
+  .insight-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-bottom: 10px;
+  }
+
+  #insight-text {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--parchment);
+    line-height: 1.7;
+    opacity: 0.85;
+  }
+
+  .moment-marker {
+    font-family: 'Amiri', serif;
+    font-size: 0.8rem;
+    color: var(--gold-light);
+    margin-top: 10px;
+    opacity: 0.8;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <p class="title">The Book of Change · Second Manuscript</p>
+  <h1>The Derivative</h1>
+  <p class="subtitle">The rate at which the world is changing, right now, at this precise moment</p>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="control-row">
+      <label>Rectangles (approximation)</label>
+      <input type="range" id="rects" min="1" max="40" value="4">
+      <span class="val" id="rects-val">4</span>
+    </div>
+    <div class="control-row">
+      <label>Time moment (t)</label>
+      <input type="range" id="moment" min="0" max="100" value="50">
+      <span class="val" id="moment-val">5.0s</span>
+    </div>
+    <div class="btn-row">
+      <button id="btn-linear" class="active" onclick="setMode('linear')">Constant Speed</button>
+      <button id="btn-accel" onclick="setMode('accel')">Accelerating</button>
+      <button id="btn-trip" onclick="setMode('trip')">Full Trip</button>
+    </div>
+  </div>
+
+  <!-- Speed panel -->
+  <div class="panel">
+    <div class="panel-label">Speed over Time · the derivative · how fast distance is changing</div>
+    <canvas id="speed-canvas"></canvas>
+    <p class="panel-note">Each rectangle approximates the distance covered in that interval. More rectangles → closer to the truth.</p>
+  </div>
+
+  <!-- Distance panel -->
+  <div class="panel">
+    <div class="panel-label">Distance over Time · the integral · accumulated area from the speed curve</div>
+    <canvas id="dist-canvas"></canvas>
+    <p class="panel-note">The slope of this curve at any moment equals the speed at that moment. Slope = derivative.</p>
+  </div>
+
+  <!-- Insight -->
+  <div class="insight">
+    <div class="insight-title">What is happening right now</div>
+    <div id="insight-text">Move the sliders to feel the relationship between speed and distance.</div>
+    <div class="moment-marker" id="moment-marker"></div>
+  </div>
+
+</div>
+
+<script>
+  const speedCanvas = document.getElementById('speed-canvas');
+  const distCanvas = document.getElementById('dist-canvas');
+  const sc = speedCanvas.getContext('2d');
+  const dc = distCanvas.getContext('2d');
+
+  let mode = 'linear';
+  let nRects = 4;
+  let tMoment = 0.5;
+
+  const T = 10; // total time in seconds
+
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + m).classList.add('active');
+    draw();
+  }
+
+  // Speed function
+  function speed(t) {
+    if (mode === 'linear') return 20;
+    if (mode === 'accel') return 4 * t;
+    if (mode === 'trip') {
+      if (t < 3) return t * 12;
+      if (t < 7) return 36 - (t-3) * 3;
+      return 24 - (t-7) * 8;
+    }
+  }
+
+  // Distance = integral of speed
+  function distance(t) {
+    let steps = 200;
+    let dt = t / steps;
+    let total = 0;
+    for (let i = 0; i < steps; i++) total += speed(i * dt) * dt;
+    return total;
+  }
+
+  function resizeCanvas(canvas) {
+    canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+    canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+  }
+
+  function draw() {
+    resizeCanvas(speedCanvas);
+    resizeCanvas(distCanvas);
+
+    const W = speedCanvas.width;
+    const H = speedCanvas.height;
+    const pad = { l: 40, r: 20, t: 20, b: 30 };
+    const dpr = window.devicePixelRatio;
+
+    sc.clearRect(0, 0, W, H);
+    dc.clearRect(0, 0, W, H);
+
+    // Colors
+    const gold = '#d4a843';
+    const goldLight = '#e8c97a';
+    const sand = '#c9b896';
+    const rectFill = 'rgba(212,168,67,0.15)';
+    const rectStroke = 'rgba(212,168,67,0.4)';
+    const curveColor = '#e8c97a';
+    const momentColor = '#ff9a4a';
+
+    // Max speed for scaling
+    let maxSpd = 0;
+    for (let i = 0; i <= 100; i++) maxSpd = Math.max(maxSpd, speed(i * T / 100));
+    maxSpd = maxSpd * 1.15;
+
+    const maxDist = distance(T) * 1.15;
+
+    function tx(t) { return pad.l * dpr + (t / T) * (W - (pad.l + pad.r) * dpr); }
+    function ty_spd(v) { return (H - pad.b * dpr) - (v / maxSpd) * (H - (pad.t + pad.b) * dpr); }
+    function ty_dst(d) { return (H - pad.b * dpr) - (d / maxDist) * (H - (pad.t + pad.b) * dpr); }
+
+    // --- SPEED CANVAS ---
+
+    // Grid lines
+    sc.strokeStyle = 'rgba(212,168,67,0.08)';
+    sc.lineWidth = 1;
+    for (let i = 1; i <= 4; i++) {
+      const y = pad.t * dpr + i * (H - (pad.t + pad.b) * dpr) / 4;
+      sc.beginPath(); sc.moveTo(pad.l * dpr, y); sc.lineTo(W - pad.r * dpr, y); sc.stroke();
+    }
+
+    // Rectangles
+    const dt = T / nRects;
+    for (let i = 0; i < nRects; i++) {
+      const t0 = i * dt;
+      const spd = speed(t0 + dt / 2);
+      const x0 = tx(t0);
+      const x1 = tx(t0 + dt);
+      const y0 = ty_spd(spd);
+      const yBase = ty_spd(0);
+      sc.fillStyle = rectFill;
+      sc.fillRect(x0, y0, x1 - x0, yBase - y0);
+      sc.strokeStyle = rectStroke;
+      sc.lineWidth = 1;
+      sc.strokeRect(x0, y0, x1 - x0, yBase - y0);
+    }
+
+    // Speed curve
+    sc.beginPath();
+    sc.strokeStyle = curveColor;
+    sc.lineWidth = 2.5;
+    for (let i = 0; i <= 200; i++) {
+      const t = i * T / 200;
+      const x = tx(t);
+      const y = ty_spd(speed(t));
+      i === 0 ? sc.moveTo(x, y) : sc.lineTo(x, y);
+    }
+    sc.stroke();
+
+    // Moment line on speed
+    const tM = tMoment * T;
+    const spdAtM = speed(tM);
+    sc.strokeStyle = momentColor;
+    sc.lineWidth = 1.5;
+    sc.setLineDash([4 * dpr, 4 * dpr]);
+    sc.beginPath();
+    sc.moveTo(tx(tM), ty_spd(0));
+    sc.lineTo(tx(tM), ty_spd(maxSpd));
+    sc.stroke();
+    sc.setLineDash([]);
+
+    // Dot at moment
+    sc.fillStyle = momentColor;
+    sc.beginPath();
+    sc.arc(tx(tM), ty_spd(spdAtM), 5 * dpr, 0, Math.PI * 2);
+    sc.fill();
+
+    // Axes
+    sc.strokeStyle = 'rgba(212,168,67,0.3)';
+    sc.lineWidth = 1;
+    sc.beginPath();
+    sc.moveTo(pad.l * dpr, pad.t * dpr);
+    sc.lineTo(pad.l * dpr, H - pad.b * dpr);
+    sc.lineTo(W - pad.r * dpr, H - pad.b * dpr);
+    sc.stroke();
+
+    // Axis labels
+    sc.fillStyle = sand;
+    sc.font = `${10 * dpr}px Amiri`;
+    sc.fillText('speed', 2, pad.t * dpr + 10 * dpr);
+    sc.fillText('time', W - pad.r * dpr - 20 * dpr, H - 8 * dpr);
+
+    // --- DISTANCE CANVAS ---
+
+    // Grid
+    dc.strokeStyle = 'rgba(212,168,67,0.08)';
+    dc.lineWidth = 1;
+    for (let i = 1; i <= 4; i++) {
+      const y = pad.t * dpr + i * (H - (pad.t + pad.b) * dpr) / 4;
+      dc.beginPath(); dc.moveTo(pad.l * dpr, y); dc.lineTo(W - pad.r * dpr, y); dc.stroke();
+    }
+
+    // Distance curve
+    dc.beginPath();
+    dc.strokeStyle = curveColor;
+    dc.lineWidth = 2.5;
+    for (let i = 0; i <= 200; i++) {
+      const t = i * T / 200;
+      const x = tx(t);
+      const y = ty_dst(distance(t));
+      i === 0 ? dc.moveTo(x, y) : dc.lineTo(x, y);
+    }
+    dc.stroke();
+
+    // Tangent line at moment (slope = speed at that moment)
+    const dAtM = distance(tM);
+    const slope = spdAtM; // derivative = speed
+    const tangentLen = 1.5;
+    const x1t = tx(tM - tangentLen);
+    const x2t = tx(tM + tangentLen);
+    const y1t = ty_dst(dAtM - slope * tangentLen);
+    const y2t = ty_dst(dAtM + slope * tangentLen);
+
+    dc.strokeStyle = momentColor;
+    dc.lineWidth = 2;
+    dc.setLineDash([5 * dpr, 3 * dpr]);
+    dc.beginPath();
+    dc.moveTo(x1t, y1t);
+    dc.lineTo(x2t, y2t);
+    dc.stroke();
+    dc.setLineDash([]);
+
+    // Moment line
+    dc.strokeStyle = momentColor;
+    dc.lineWidth = 1.5;
+    dc.setLineDash([4 * dpr, 4 * dpr]);
+    dc.beginPath();
+    dc.moveTo(tx(tM), ty_dst(0));
+    dc.lineTo(tx(tM), ty_dst(maxDist));
+    dc.stroke();
+    dc.setLineDash([]);
+
+    // Dot
+    dc.fillStyle = momentColor;
+    dc.beginPath();
+    dc.arc(tx(tM), ty_dst(dAtM), 5 * dpr, 0, Math.PI * 2);
+    dc.fill();
+
+    // Axes
+    dc.strokeStyle = 'rgba(212,168,67,0.3)';
+    dc.lineWidth = 1;
+    dc.beginPath();
+    dc.moveTo(pad.l * dpr, pad.t * dpr);
+    dc.lineTo(pad.l * dpr, H - pad.b * dpr);
+    dc.lineTo(W - pad.r * dpr, H - pad.b * dpr);
+    dc.stroke();
+
+    dc.fillStyle = sand;
+    dc.font = `${10 * dpr}px Amiri`;
+    dc.fillText('distance', 2, pad.t * dpr + 10 * dpr);
+    dc.fillText('time', W - pad.r * dpr - 20 * dpr, H - 8 * dpr);
+
+    // Update insight
+    updateInsight(tM, spdAtM, dAtM);
+  }
+
+  function updateInsight(tM, spd, dist) {
+    const modeNames = { linear: 'constant speed', accel: 'accelerating', trip: 'a full trip' };
+    const spdR = spd.toFixed(1);
+    const distR = dist.toFixed(1);
+    const tR = tM.toFixed(1);
+
+    let text = `At t = ${tR}s into ${modeNames[mode]}: `;
+    text += `the car is moving at <strong style="color:#e8c97a">${spdR} m/s</strong> — `;
+    text += `that is the derivative. The orange tangent line on the distance curve shows it: `;
+
+    if (spd < 5) text += `nearly flat, almost stopped.`;
+    else if (spd < 20) text += `a gentle slope, moving slowly.`;
+    else if (spd < 35) text += `a clear incline, moderate speed.`;
+    else text += `steep — the car is moving fast.`;
+
+    text += ` Total distance covered: <strong style="color:#e8c97a">${distR} m</strong> — that is the integral.`;
+
+    document.getElementById('insight-text').innerHTML = text;
+    document.getElementById('moment-marker').textContent =
+      `The slope of the distance curve at this moment = ${spdR} m/s = the speed = the derivative.`;
+  }
+
+  // Sliders
+  document.getElementById('rects').addEventListener('input', function() {
+    nRects = +this.value;
+    document.getElementById('rects-val').textContent = nRects;
+    draw();
+  });
+
+  document.getElementById('moment').addEventListener('input', function() {
+    tMoment = this.value / 100;
+    document.getElementById('moment-val').textContent = (tMoment * T).toFixed(1) + 's';
+    draw();
+  });
+
+  window.addEventListener('resize', draw);
+  draw();
+</script>
+</body>
+</html>

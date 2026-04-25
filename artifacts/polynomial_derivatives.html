@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Book of Change · Polynomials</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Amiri&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #d4a843;
+    --gold-light: #e8c97a;
+    --parchment: #f0e6cc;
+    --sand: #c9b896;
+    --ink: #1a1610;
+    --deep: #0e0c08;
+    --term1: #e8c97a;
+    --term2: #7ab8e8;
+    --term3: #7ae8a8;
+    --deriv: #ff9a4a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: var(--parchment);
+    font-family: 'IM Fell English', serif;
+    min-height: 100vh;
+    padding: 28px 18px;
+  }
+
+  .container { max-width: 780px; margin: 0 auto; }
+
+  .title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    opacity: 0.7;
+    text-align: center;
+    margin-bottom: 5px;
+  }
+
+  h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.2rem;
+    color: var(--gold-light);
+    text-align: center;
+    margin-bottom: 5px;
+  }
+
+  .subtitle {
+    font-style: italic;
+    color: var(--sand);
+    text-align: center;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 24px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .divider-line { flex: 1; height: 1px; background: rgba(212,168,67,0.2); }
+  .divider-diamond { width: 5px; height: 5px; background: var(--gold); transform: rotate(45deg); opacity: 0.5; }
+
+  /* Term builders */
+  .builder {
+    background: rgba(212,168,67,0.03);
+    border: 1px solid rgba(212,168,67,0.18);
+    padding: 18px 22px;
+    margin-bottom: 14px;
+  }
+
+  .builder-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    opacity: 0.5;
+    margin-bottom: 14px;
+  }
+
+  .term-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .term-label {
+    font-family: 'Amiri', serif;
+    font-size: 0.85rem;
+    color: var(--sand);
+    min-width: 55px;
+  }
+
+  .term-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    flex-wrap: wrap;
+  }
+
+  .ctrl-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ctrl-group label {
+    font-family: 'Amiri', serif;
+    font-size: 0.8rem;
+    color: var(--sand);
+    opacity: 0.7;
+  }
+
+  input[type="range"] {
+    width: 80px;
+    accent-color: var(--gold);
+    cursor: pointer;
+  }
+
+  .val-badge {
+    font-family: 'Amiri', serif;
+    font-size: 0.9rem;
+    min-width: 28px;
+    text-align: center;
+  }
+
+  .t1 { color: var(--term1); }
+  .t2 { color: var(--term2); }
+  .t3 { color: var(--term3); }
+
+  /* Formula display */
+  .formula-box {
+    border: 1px solid rgba(212,168,67,0.25);
+    padding: 16px 20px;
+    margin-bottom: 14px;
+    background: rgba(0,0,0,0.2);
+  }
+
+  .formula-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .formula-row:last-child { margin-bottom: 0; }
+
+  .formula-label {
+    font-family: 'Amiri', serif;
+    font-size: 0.8rem;
+    color: var(--sand);
+    opacity: 0.6;
+    min-width: 70px;
+  }
+
+  .formula-expr {
+    font-family: 'Amiri', serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+  }
+
+  .rule-tag {
+    font-family: 'Amiri', serif;
+    font-size: 0.75rem;
+    color: var(--sand);
+    opacity: 0.5;
+    font-style: italic;
+    margin-left: 6px;
+  }
+
+  /* Canvas */
+  .canvas-panel {
+    border: 1px solid rgba(212,168,67,0.18);
+    padding: 16px;
+    margin-bottom: 14px;
+    background: rgba(212,168,67,0.02);
+  }
+
+  .canvas-label {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    opacity: 0.55;
+    margin-bottom: 10px;
+  }
+
+  canvas {
+    width: 100%;
+    height: 200px;
+    display: block;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(212,168,67,0.08);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 18px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Amiri', serif;
+    font-size: 0.8rem;
+    color: var(--sand);
+    opacity: 0.8;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 3px;
+    border-radius: 2px;
+  }
+
+  /* Insight */
+  .insight {
+    border: 1px solid rgba(212,168,67,0.2);
+    padding: 14px 18px;
+    background: rgba(212,168,67,0.03);
+  }
+
+  .insight-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    opacity: 0.55;
+    margin-bottom: 8px;
+  }
+
+  #insight-text {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--parchment);
+    opacity: 0.85;
+    line-height: 1.65;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <p class="title">The Book of Change · Lectures 4 & 5</p>
+  <h1>Polynomial Derivatives</h1>
+  <p class="subtitle">Power rule · Additivity · Constants riding along unchanged</p>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- Term builders -->
+  <div class="builder">
+    <div class="builder-title" style="color:var(--term1)">TERM 1 · a · tⁿ</div>
+    <div class="term-row">
+      <div class="term-controls">
+        <div class="ctrl-group">
+          <label>constant a</label>
+          <input type="range" id="a1" min="-4" max="4" value="1" step="1">
+          <span class="val-badge t1" id="a1v">1</span>
+        </div>
+        <div class="ctrl-group">
+          <label>power n</label>
+          <input type="range" id="n1" min="0" max="4" value="2" step="1">
+          <span class="val-badge t1" id="n1v">2</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="builder">
+    <div class="builder-title" style="color:var(--term2)">TERM 2 · b · tᵐ</div>
+    <div class="term-row">
+      <div class="term-controls">
+        <div class="ctrl-group">
+          <label>constant b</label>
+          <input type="range" id="a2" min="-4" max="4" value="1" step="1">
+          <span class="val-badge t2" id="a2v">1</span>
+        </div>
+        <div class="ctrl-group">
+          <label>power m</label>
+          <input type="range" id="n2" min="0" max="4" value="1" step="1">
+          <span class="val-badge t2" id="n2v">1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="builder">
+    <div class="builder-title" style="color:var(--term3)">TERM 3 · constant c</div>
+    <div class="term-row">
+      <div class="term-controls">
+        <div class="ctrl-group">
+          <label>value c</label>
+          <input type="range" id="a3" min="-4" max="4" value="1" step="1">
+          <span class="val-badge t3" id="a3v">1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formula -->
+  <div class="formula-box">
+    <div class="formula-row">
+      <span class="formula-label">f(t) =</span>
+      <span class="formula-expr" id="f-expr">—</span>
+    </div>
+    <div class="formula-row">
+      <span class="formula-label">f′(t) =</span>
+      <span class="formula-expr" id="df-expr" style="color:var(--deriv)">—</span>
+      <span class="rule-tag">power rule + additivity</span>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas-panel">
+    <div class="canvas-label">Function and its derivative · same t-axis</div>
+    <canvas id="main-canvas"></canvas>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--gold-light)"></div>f(t) — the polynomial</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--deriv)"></div>f′(t) — its derivative</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--term1); opacity:0.5"></div>term 1</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--term2); opacity:0.5"></div>term 2</div>
+    </div>
+  </div>
+
+  <!-- Insight -->
+  <div class="insight">
+    <div class="insight-title">What the rules are doing</div>
+    <div id="insight-text">Adjust the sliders to build your polynomial.</div>
+  </div>
+
+</div>
+
+<script>
+  const canvas = document.getElementById('main-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function getVals() {
+    return {
+      a1: +document.getElementById('a1').value,
+      n1: +document.getElementById('n1').value,
+      a2: +document.getElementById('a2').value,
+      n2: +document.getElementById('n2').value,
+      a3: +document.getElementById('a3').value,
+    };
+  }
+
+  function f(t, v) {
+    return v.a1 * Math.pow(t, v.n1) + v.a2 * Math.pow(t, v.n2) + v.a3;
+  }
+
+  function df(t, v) {
+    const d1 = v.n1 > 0 ? v.a1 * v.n1 * Math.pow(t, v.n1 - 1) : 0;
+    const d2 = v.n2 > 0 ? v.a2 * v.n2 * Math.pow(t, v.n2 - 1) : 0;
+    return d1 + d2; // constant term vanishes
+  }
+
+  function term1(t, v) { return v.a1 * Math.pow(t, v.n1); }
+  function term2(t, v) { return v.a2 * Math.pow(t, v.n2); }
+
+  function formatTerm(a, n, variable) {
+    if (a === 0) return null;
+    const aStr = Math.abs(a) === 1 && n > 0 ? '' : Math.abs(a);
+    const sign = a < 0 ? '−' : '+';
+    if (n === 0) return { sign, term: `${Math.abs(a)}` };
+    if (n === 1) return { sign, term: `${aStr}${variable}` };
+    const sups = ['⁰','¹','²','³','⁴'];
+    return { sign, term: `${aStr}${variable}${sups[n] || '^'+n}` };
+  }
+
+  function formatDerivTerm(a, n) {
+    if (a === 0 || n === 0) return null;
+    const coeff = a * n;
+    const newN = n - 1;
+    const sups = ['⁰','¹','²','³','⁴'];
+    if (newN === 0) return { sign: coeff < 0 ? '−' : '+', term: `${Math.abs(coeff)}` };
+    const cStr = Math.abs(coeff) === 1 ? '' : Math.abs(coeff);
+    if (newN === 1) return { sign: coeff < 0 ? '−' : '+', term: `${cStr}t` };
+    return { sign: coeff < 0 ? '−' : '+', term: `${cStr}t${sups[newN] || '^'+newN}` };
+  }
+
+  function buildExpr(terms) {
+    if (terms.every(t => !t)) return '0';
+    let result = '';
+    let first = true;
+    for (const t of terms) {
+      if (!t) continue;
+      if (first) {
+        result += (t.sign === '−' ? '−' : '') + t.term;
+        first = false;
+      } else {
+        result += ` ${t.sign} ${t.term}`;
+      }
+    }
+    return result || '0';
+  }
+
+  function updateFormulas(v) {
+    const t1 = formatTerm(v.a1, v.n1, 't');
+    const t2 = formatTerm(v.a2, v.n2, 't');
+    const t3 = v.a3 !== 0 ? { sign: v.a3 < 0 ? '−' : '+', term: `${Math.abs(v.a3)}` } : null;
+    document.getElementById('f-expr').textContent = buildExpr([t1, t2, t3]);
+
+    const d1 = formatDerivTerm(v.a1, v.n1);
+    const d2 = formatDerivTerm(v.a2, v.n2);
+    // constant term → 0, omit
+    document.getElementById('df-expr').textContent = buildExpr([d1, d2]) || '0';
+  }
+
+  function updateInsight(v) {
+    const parts = [];
+
+    if (v.a3 !== 0) parts.push(`The constant ${v.a3} vanishes in the derivative — constants don't change, so their rate of change is zero.`);
+    if (v.n1 === 0 && v.a1 !== 0) parts.push(`Term 1 is also a constant (t⁰ = 1) — disappears in the derivative.`);
+    if (v.n2 === 0 && v.a2 !== 0) parts.push(`Term 2 is also a constant — disappears.`);
+
+    const survives = [];
+    if (v.n1 > 0 && v.a1 !== 0) survives.push(`${v.a1}t${v.n1 > 1 ? '^'+v.n1 : ''} → ${v.a1*v.n1}t${v.n1-1 > 1 ? '^'+(v.n1-1) : v.n1-1===1?'':'^0'}`);
+    if (v.n2 > 0 && v.a2 !== 0) survives.push(`${v.a2}t${v.n2 > 1 ? '^'+v.n2 : ''} → ${v.a2*v.n2}t${v.n2-1 > 1 ? '^'+(v.n2-1) : v.n2-1===1?'':'^0'}`);
+
+    if (survives.length) parts.push(`Power rule applied: ${survives.join(', ')}. The constant multiplies through.`);
+    if (survives.length > 1) parts.push(`Additivity: each term differentiated separately, results added together.`);
+
+    document.getElementById('insight-text').textContent = parts.join(' ') || 'All terms are constants — derivative is zero everywhere.';
+  }
+
+  function draw() {
+    const v = getVals();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = canvas.offsetHeight * dpr;
+    const W = canvas.width, H = canvas.height;
+    const pad = { l: 40, r: 16, t: 20, b: 28 };
+
+    ctx.clearRect(0, 0, W, H);
+
+    const tMin = -3, tMax = 3;
+    const steps = 300;
+
+    // Sample both functions
+    const fVals = [], dfVals = [], t1Vals = [], t2Vals = [];
+    for (let i = 0; i <= steps; i++) {
+      const t = tMin + i * (tMax - tMin) / steps;
+      fVals.push(f(t, v));
+      dfVals.push(df(t, v));
+      t1Vals.push(term1(t, v));
+      t2Vals.push(term2(t, v));
+    }
+
+    const allY = [...fVals, ...dfVals].filter(y => isFinite(y) && Math.abs(y) < 1e6);
+    if (allY.length === 0) return;
+
+    let yMin = Math.min(...allY);
+    let yMax = Math.max(...allY);
+    if (yMin === yMax) { yMin -= 1; yMax += 1; }
+    const yPad = (yMax - yMin) * 0.15;
+    yMin -= yPad; yMax += yPad;
+
+    function tx(t) { return pad.l * dpr + (t - tMin) / (tMax - tMin) * (W - (pad.l + pad.r) * dpr); }
+    function ty(y) { return (H - pad.b * dpr) - (y - yMin) / (yMax - yMin) * (H - (pad.t + pad.b) * dpr); }
+
+    // Grid
+    ctx.strokeStyle = 'rgba(212,168,67,0.07)';
+    ctx.lineWidth = 1;
+    for (let i = -3; i <= 3; i++) {
+      ctx.beginPath(); ctx.moveTo(tx(i), pad.t * dpr); ctx.lineTo(tx(i), H - pad.b * dpr); ctx.stroke();
+    }
+
+    // Zero line
+    if (yMin < 0 && yMax > 0) {
+      ctx.strokeStyle = 'rgba(212,168,67,0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pad.l * dpr, ty(0)); ctx.lineTo(W - pad.r * dpr, ty(0)); ctx.stroke();
+    }
+
+    // t-axis
+    ctx.strokeStyle = 'rgba(212,168,67,0.2)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.l * dpr, H - pad.b * dpr);
+    ctx.lineTo(W - pad.r * dpr, H - pad.b * dpr);
+    ctx.stroke();
+
+    // Draw term curves (faint)
+    function drawCurve(vals, color, width, dash) {
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      if (dash) ctx.setLineDash(dash);
+      else ctx.setLineDash([]);
+      let first = true;
+      for (let i = 0; i <= steps; i++) {
+        const t = tMin + i * (tMax - tMin) / steps;
+        const y = vals[i];
+        if (!isFinite(y) || Math.abs(y) > 1e6) { first = true; continue; }
+        const x = tx(t), yy = ty(y);
+        first ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy);
+        first = false;
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    drawCurve(t1Vals, 'rgba(232,201,122,0.25)', 1.5 * dpr, [4*dpr, 4*dpr]);
+    drawCurve(t2Vals, 'rgba(122,184,232,0.25)', 1.5 * dpr, [4*dpr, 4*dpr]);
+    drawCurve(fVals, 'rgba(232,201,122,0.9)', 2.5 * dpr, null);
+    drawCurve(dfVals, 'rgba(255,154,74,0.9)', 2.5 * dpr, null);
+
+    // Axis labels
+    ctx.fillStyle = 'rgba(201,184,150,0.5)';
+    ctx.font = `${9 * dpr}px Amiri`;
+    for (let i = -3; i <= 3; i++) {
+      ctx.fillText(i, tx(i) - 4 * dpr, H - 8 * dpr);
+    }
+    ctx.fillText('t', W - pad.r * dpr - 8 * dpr, H - 8 * dpr);
+  }
+
+  function update() {
+    const v = getVals();
+    document.getElementById('a1v').textContent = v.a1;
+    document.getElementById('n1v').textContent = v.n1;
+    document.getElementById('a2v').textContent = v.a2;
+    document.getElementById('n2v').textContent = v.n2;
+    document.getElementById('a3v').textContent = v.a3;
+    updateFormulas(v);
+    updateInsight(v);
+    draw();
+  }
+
+  ['a1','n1','a2','n2','a3'].forEach(id => {
+    document.getElementById(id).addEventListener('input', update);
+  });
+
+  window.addEventListener('resize', draw);
+  update();
+</script>
+</body>
+</html>

@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Book of Change · Chain Rule & Gradient Descent</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Amiri&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #d4a843;
+    --gold-light: #e8c97a;
+    --parchment: #f0e6cc;
+    --sand: #c9b896;
+    --deep: #0e0c08;
+    --outer: #7ab8e8;
+    --inner: #7ae8a8;
+    --chain: #ff9a4a;
+    --step: #e87a7a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: var(--parchment);
+    font-family: 'IM Fell English', serif;
+    min-height: 100vh;
+    padding: 28px 18px;
+  }
+
+  .container { max-width: 800px; margin: 0 auto; }
+
+  .title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    opacity: 0.7;
+    text-align: center;
+    margin-bottom: 5px;
+  }
+
+  h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.15rem;
+    color: var(--gold-light);
+    text-align: center;
+    margin-bottom: 5px;
+    line-height: 1.4;
+  }
+
+  .subtitle {
+    font-style: italic;
+    color: var(--sand);
+    text-align: center;
+    font-size: 0.88rem;
+    opacity: 0.75;
+    margin-bottom: 22px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+  }
+  .divider-line { flex: 1; height: 1px; background: rgba(212,168,67,0.18); }
+  .divider-diamond { width: 5px; height: 5px; background: var(--gold); transform: rotate(45deg); opacity: 0.45; }
+
+  /* Mode tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 18px;
+    border: 1px solid rgba(212,168,67,0.2);
+  }
+
+  .tab {
+    flex: 1;
+    font-family: 'Amiri', serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--sand);
+    opacity: 0.6;
+    border: none;
+    background: transparent;
+    transition: all 0.2s;
+    border-right: 1px solid rgba(212,168,67,0.15);
+  }
+
+  .tab:last-child { border-right: none; }
+
+  .tab.active {
+    background: rgba(212,168,67,0.1);
+    color: var(--gold-light);
+    opacity: 1;
+  }
+
+  .tab:hover:not(.active) {
+    opacity: 0.85;
+    background: rgba(212,168,67,0.04);
+  }
+
+  /* Panels */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Canvas */
+  .canvas-wrap {
+    border: 1px solid rgba(212,168,67,0.18);
+    padding: 14px;
+    margin-bottom: 14px;
+    background: rgba(212,168,67,0.02);
+  }
+
+  .canvas-label {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.22em;
+    color: var(--gold);
+    opacity: 0.5;
+    margin-bottom: 10px;
+  }
+
+  canvas {
+    width: 100%;
+    display: block;
+    background: rgba(0,0,0,0.28);
+    border: 1px solid rgba(212,168,67,0.07);
+  }
+
+  /* Controls */
+  .controls {
+    background: rgba(212,168,67,0.03);
+    border: 1px solid rgba(212,168,67,0.16);
+    padding: 14px 18px;
+    margin-bottom: 14px;
+  }
+
+  .ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .ctrl-row:last-child { margin-bottom: 0; }
+
+  .ctrl-label {
+    font-family: 'Amiri', serif;
+    font-size: 0.82rem;
+    color: var(--sand);
+    min-width: 130px;
+    opacity: 0.8;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    min-width: 100px;
+    accent-color: var(--gold);
+    cursor: pointer;
+  }
+
+  .ctrl-val {
+    font-family: 'Amiri', serif;
+    font-size: 0.9rem;
+    min-width: 40px;
+    text-align: right;
+    color: var(--gold-light);
+  }
+
+  button.action {
+    font-family: 'Amiri', serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    padding: 8px 18px;
+    border: 1px solid rgba(212,168,67,0.35);
+    background: rgba(212,168,67,0.07);
+    color: var(--sand);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  button.action:hover {
+    background: rgba(212,168,67,0.15);
+    color: var(--gold-light);
+  }
+
+  /* Formula display */
+  .formula-box {
+    border: 1px solid rgba(212,168,67,0.2);
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.18);
+    margin-bottom: 14px;
+    font-family: 'Amiri', serif;
+    font-size: 1rem;
+    line-height: 1.9;
+  }
+
+  .f-outer { color: var(--outer); }
+  .f-inner { color: var(--inner); }
+  .f-chain { color: var(--chain); }
+  .f-step  { color: var(--step); }
+  .f-gold  { color: var(--gold-light); }
+
+  /* Insight */
+  .insight {
+    border: 1px solid rgba(212,168,67,0.18);
+    padding: 14px 18px;
+    background: rgba(212,168,67,0.02);
+  }
+
+  .insight-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    opacity: 0.5;
+    margin-bottom: 8px;
+  }
+
+  .insight-text {
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--parchment);
+    opacity: 0.82;
+    line-height: 1.65;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Amiri', serif;
+    font-size: 0.78rem;
+    color: var(--sand);
+    opacity: 0.75;
+  }
+
+  .ldot { width: 12px; height: 3px; border-radius: 1px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <p class="title">The Book of Change · Lecture 6</p>
+  <h1>Chain Rule → Gradient Descent</h1>
+  <p class="subtitle">The same mathematics. Two names for two moments in the same story.</p>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-diamond"></div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setTab('chain')">I · Chain Rule</button>
+    <button class="tab" onclick="setTab('composite')">II · Composite Functions</button>
+    <button class="tab" onclick="setTab('descent')">III · Gradient Descent</button>
+  </div>
+
+  <!-- PANEL 1: Chain Rule -->
+  <div class="panel active" id="panel-chain">
+
+    <div class="controls">
+      <div class="ctrl-row">
+        <span class="ctrl-label">Point x</span>
+        <input type="range" id="chain-x" min="-25" max="25" value="10" step="1">
+        <span class="ctrl-val" id="chain-xv">1.0</span>
+      </div>
+    </div>
+
+    <div class="canvas-wrap">
+      <div class="canvas-label">Outer f · Inner g · Composite f(g(x))</div>
+      <canvas id="chain-canvas" style="height:220px"></canvas>
+      <div class="legend">
+        <div class="legend-item"><div class="ldot" style="background:var(--inner)"></div>g(x) = x² − 2 (inner)</div>
+        <div class="legend-item"><div class="ldot" style="background:var(--outer)"></div>f(u) = eᵘ (outer)</div>
+        <div class="legend-item"><div class="ldot" style="background:var(--chain)"></div>f(g(x)) = e^(x²−2) (composite)</div>
+      </div>
+    </div>
+
+    <div class="formula-box">
+      <div>Composite: <span class="f-chain">f(g(x))</span> = <span class="f-outer">e</span><span style="vertical-align:super;font-size:0.75em"><span class="f-inner">x²−2</span></span></div>
+      <div>Chain rule: <span class="f-chain">d/dx f(g(x))</span> = <span class="f-outer">f′(g(x))</span> · <span class="f-inner">g′(x)</span></div>
+      <div>= <span class="f-outer">e^(x²−2)</span> · <span class="f-inner">2x</span> = <span class="f-chain" id="chain-result">—</span></div>
+    </div>
+
+    <div class="insight">
+      <div class="insight-title">The chain</div>
+      <div class="insight-text" id="chain-insight">Move the point to see the chain rule decompose the derivative into two multiplied rates of change.</div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: Composite decomposition -->
+  <div class="panel" id="panel-composite">
+
+    <div class="canvas-wrap">
+      <div class="canvas-label">Two machines in sequence · input flows through g, then through f</div>
+      <canvas id="comp-canvas" style="height:260px"></canvas>
+    </div>
+
+    <div class="controls">
+      <div class="ctrl-row">
+        <span class="ctrl-label">Input x</span>
+        <input type="range" id="comp-x" min="-20" max="20" value="8" step="1">
+        <span class="ctrl-val" id="comp-xv">0.8</span>
+      </div>
+    </div>
+
+    <div class="formula-box">
+      <div>x → <span class="f-inner">g(x) = x²</span> → <span class="f-outer">f(u) = sin(u)</span> → <span class="f-chain">f(g(x)) = sin(x²)</span></div>
+      <div style="margin-top:6px">Chain rule: <span class="f-chain">cos(x²)</span> · <span class="f-inner">2x</span> = <span class="f-chain" id="comp-result">—</span></div>
+    </div>
+
+    <div class="insight">
+      <div class="insight-title">Two machines</div>
+      <div class="insight-text">The inner machine g transforms x first. The outer machine f receives g's output. The chain rule multiplies their individual sensitivities — how much g responds to x, times how much f responds to g.</div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: Gradient Descent -->
+  <div class="panel" id="panel-descent">
+
+    <div class="controls">
+      <div class="ctrl-row">
+        <span class="ctrl-label">Learning rate α</span>
+        <input type="range" id="lr" min="1" max="30" value="8" step="1">
+        <span class="ctrl-val" id="lrv">0.08</span>
+      </div>
+      <div class="ctrl-row">
+        <button class="action" onclick="resetDescent()">Reset position</button>
+        <button class="action" onclick="stepDescent()">One step ↓</button>
+        <button class="action" onclick="runDescent()">Run descent</button>
+        <button class="action" onclick="stopDescent()">Stop</button>
+      </div>
+    </div>
+
+    <div class="canvas-wrap">
+      <div class="canvas-label">Loss surface · gradient descent · the chain rule walking downhill</div>
+      <canvas id="desc-canvas" style="height:260px"></canvas>
+      <div class="legend">
+        <div class="legend-item"><div class="ldot" style="background:var(--gold-light)"></div>Loss L(x)</div>
+        <div class="legend-item"><div class="ldot" style="background:var(--chain)"></div>current position</div>
+        <div class="legend-item"><div class="ldot" style="background:var(--step)"></div>path taken</div>
+      </div>
+    </div>
+
+    <div class="formula-box">
+      <div>Loss: <span class="f-gold">L(x) = (x²−1)² + 0.3·sin(4x)</span></div>
+      <div>Gradient: <span class="f-chain">dL/dx</span> = <span class="f-outer">4x(x²−1)</span> + <span class="f-inner">1.2·cos(4x)</span> <span style="font-size:0.78rem;color:var(--sand);opacity:0.6">(chain rule applied)</span></div>
+      <div>Update: <span class="f-step">x_new = x − α · dL/dx</span></div>
+      <div style="margin-top:4px">Position: <span class="f-chain" id="desc-pos">—</span> &nbsp;|&nbsp; Loss: <span class="f-gold" id="desc-loss">—</span> &nbsp;|&nbsp; Gradient: <span class="f-outer" id="desc-grad">—</span></div>
+    </div>
+
+    <div class="insight">
+      <div class="insight-title">The chain rule walking downhill</div>
+      <div class="insight-text" id="desc-insight">The gradient is computed using the chain rule — decomposing dL/dx into its parts. Gradient descent is just that derivative evaluated at each step, then subtracted from the current position. This is what Karpathy built. This is what backpropagation is.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ---- Tab switching ----
+  function setTab(name) {
+    document.querySelectorAll('.tab').forEach((t,i) => {
+      t.classList.toggle('active', ['chain','composite','descent'][i] === name);
+    });
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + (name === 'composite' ? 'composite' : name === 'descent' ? 'descent' : 'chain')).classList.add('active');
+    setTimeout(() => {
+      if (name === 'chain') drawChain();
+      if (name === 'composite') drawComposite();
+      if (name === 'descent') drawDescent();
+    }, 10);
+  }
+
+  const dpr = window.devicePixelRatio || 1;
+
+  function resizeCanvas(canvas) {
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = canvas.offsetHeight * dpr;
+  }
+
+  // ---- PANEL 1: Chain Rule ----
+  function getChainX() { return document.getElementById('chain-x').value / 10; }
+
+  function drawChain() {
+    const canvas = document.getElementById('chain-canvas');
+    resizeCanvas(canvas);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const pad = {l:38, r:14, t:18, b:28};
+
+    ctx.clearRect(0,0,W,H);
+
+    const xMin = -2.5, xMax = 2.5;
+    const steps = 300;
+    const cx = getChainX();
+
+    // Functions
+    const g = x => x*x - 2;
+    const ef = u => Math.min(Math.exp(u), 20);
+    const composite = x => ef(g(x));
+
+    // Sample
+    const gVals = [], fVals = [], cVals = [];
+    for (let i = 0; i <= steps; i++) {
+      const x = xMin + i*(xMax-xMin)/steps;
+      gVals.push(g(x));
+      fVals.push(ef(x));
+      cVals.push(composite(x));
+    }
+
+    const allY = [...gVals, ...cVals].filter(y => isFinite(y) && y < 22);
+    let yMin = Math.min(...allY), yMax = Math.max(...allY);
+    if (yMin === yMax) { yMin -= 1; yMax += 1; }
+    const yp = (yMax - yMin) * 0.12;
+    yMin -= yp; yMax += yp;
+
+    function tx(x) { return pad.l*dpr + (x-xMin)/(xMax-xMin)*(W-(pad.l+pad.r)*dpr); }
+    function ty(y) { return (H-pad.b*dpr) - (y-yMin)/(yMax-yMin)*(H-(pad.t+pad.b)*dpr); }
+
+    // Grid
+    ctx.strokeStyle = 'rgba(212,168,67,0.06)';
+    ctx.lineWidth = 1;
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath(); ctx.moveTo(tx(i), pad.t*dpr); ctx.lineTo(tx(i), H-pad.b*dpr); ctx.stroke();
+    }
+    if (yMin < 0 && yMax > 0) {
+      ctx.strokeStyle = 'rgba(212,168,67,0.12)';
+      ctx.beginPath(); ctx.moveTo(pad.l*dpr, ty(0)); ctx.lineTo(W-pad.r*dpr, ty(0)); ctx.stroke();
+    }
+
+    // Curves
+    function drawCurve(vals, color, w) {
+      ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = w;
+      let first = true;
+      for (let i = 0; i <= steps; i++) {
+        const x = xMin + i*(xMax-xMin)/steps;
+        const y = vals[i];
+        if (!isFinite(y) || y > 22) { first = true; continue; }
+        first ? ctx.moveTo(tx(x), ty(y)) : ctx.lineTo(tx(x), ty(y));
+        first = false;
+      }
+      ctx.stroke();
+    }
+
+    drawCurve(gVals, 'rgba(122,232,168,0.55)', 1.5*dpr);
+    drawCurve(cVals, 'rgba(255,154,74,0.9)', 2.5*dpr);
+
+    // Tangent at cx
+    const dgdx = 2*cx;
+    const gAtCx = g(cx);
+    const dfdg = ef(gAtCx);
+    const dchain = dfdg * dgdx;
+    const cAtCx = composite(cx);
+
+    // Tangent line
+    const tlen = 0.4;
+    ctx.strokeStyle = 'rgba(255,154,74,0.6)';
+    ctx.lineWidth = 1.5*dpr;
+    ctx.setLineDash([4*dpr, 3*dpr]);
+    ctx.beginPath();
+    ctx.moveTo(tx(cx-tlen), ty(cAtCx - dchain*tlen));
+    ctx.lineTo(tx(cx+tlen), ty(cAtCx + dchain*tlen));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Point
+    ctx.fillStyle = 'rgba(255,154,74,1)';
+    ctx.beginPath();
+    ctx.arc(tx(cx), ty(cAtCx), 5*dpr, 0, Math.PI*2);
+    ctx.fill();
+
+    // Axis
+    ctx.strokeStyle = 'rgba(212,168,67,0.2)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.l*dpr, H-pad.b*dpr);
+    ctx.lineTo(W-pad.r*dpr, H-pad.b*dpr);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(201,184,150,0.45)';
+    ctx.font = `${9*dpr}px Amiri`;
+    for (let i = -2; i <= 2; i++) ctx.fillText(i, tx(i)-4*dpr, H-8*dpr);
+
+    // Update formula
+    document.getElementById('chain-result').textContent =
+      `${dchain.toFixed(3)} at x = ${cx.toFixed(1)}`;
+    document.getElementById('chain-insight').textContent =
+      `At x = ${cx.toFixed(2)}: g(x) = ${gAtCx.toFixed(2)}, f′(g(x)) = e^${gAtCx.toFixed(2)} = ${dfdg.toFixed(2)}, g′(x) = 2x = ${dgdx.toFixed(2)}. Chain rule: ${dfdg.toFixed(2)} × ${dgdx.toFixed(2)} = ${dchain.toFixed(3)}. The outer function's sensitivity times the inner function's sensitivity.`;
+  }
+
+  document.getElementById('chain-x').addEventListener('input', function() {
+    document.getElementById('chain-xv').textContent = (this.value/10).toFixed(1);
+    drawChain();
+  });
+
+  // ---- PANEL 2: Composite ----
+  function drawComposite() {
+    const canvas = document.getElementById('comp-canvas');
+    resizeCanvas(canvas);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0,0,W,H);
+
+    const xVal = document.getElementById('comp-x').value / 10;
+    const gVal = xVal * xVal;
+    const fVal = Math.sin(gVal);
+    const dgdx = 2 * xVal;
+    const dfdg = Math.cos(gVal);
+    const chain = dfdg * dgdx;
+
+    // Draw pipeline diagram
+    const boxW = 140*dpr, boxH = 55*dpr;
+    const y0 = H/2 - boxH/2;
+    const gap = 30*dpr;
+    const totalW = 3*boxW + 2*gap + 80*dpr;
+    const startX = (W - totalW)/2;
+
+    function box(x, y, w, h, label, sublabel, color) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.fillRect(x,y,w,h);
+      ctx.strokeRect(x,y,w,h);
+      ctx.fillStyle = color;
+      ctx.font = `bold ${11*dpr}px Amiri`;
+      ctx.textAlign = 'center';
+      ctx.fillText(label, x+w/2, y+h/2-4*dpr);
+      ctx.font = `${9*dpr}px Amiri`;
+      ctx.fillStyle = 'rgba(201,184,150,0.6)';
+      ctx.fillText(sublabel, x+w/2, y+h/2+10*dpr);
+    }
+
+    function arrow(x1, x2, y) {
+      ctx.strokeStyle = 'rgba(212,168,67,0.3)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x1, y);
+      ctx.lineTo(x2-8*dpr, y);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(212,168,67,0.3)';
+      ctx.beginPath();
+      ctx.moveTo(x2, y);
+      ctx.lineTo(x2-8*dpr, y-4*dpr);
+      ctx.lineTo(x2-8*dpr, y+4*dpr);
+      ctx.fill();
+    }
+
+    function valueLabel(x, y, val, color) {
+      ctx.fillStyle = color;
+      ctx.font = `${10*dpr}px Amiri`;
+      ctx.textAlign = 'center';
+      ctx.fillText(val, x, y);
+    }
+
+    const b1x = startX;
+    const b2x = startX + boxW + gap;
+    const b3x = startX + 2*(boxW + gap);
+
+    box(b1x, y0, boxW, boxH, 'x', `input = ${xVal.toFixed(2)}`, 'rgba(201,184,150,0.7)');
+    arrow(b1x+boxW, b2x, H/2);
+    box(b2x, y0, boxW, boxH, 'g(x) = x²', `output = ${gVal.toFixed(3)}`, 'rgba(122,232,168,0.8)');
+    arrow(b2x+boxW, b3x, H/2);
+    box(b3x, y0, boxW, boxH, 'f(u) = sin(u)', `output = ${fVal.toFixed(3)}`, 'rgba(122,184,232,0.8)');
+
+    // Derivative row below
+    const dy = y0 + boxH + 38*dpr;
+    ctx.fillStyle = 'rgba(201,184,150,0.4)';
+    ctx.font = `${9*dpr}px Amiri`;
+    ctx.textAlign = 'center';
+    ctx.fillText('g′(x) = 2x', b2x+boxW/2, dy);
+    ctx.fillText(`= ${dgdx.toFixed(3)}`, b2x+boxW/2, dy+13*dpr);
+    ctx.fillText('f′(u) = cos(u)', b3x+boxW/2, dy);
+    ctx.fillText(`= ${dfdg.toFixed(3)}`, b3x+boxW/2, dy+13*dpr);
+
+    // Chain result
+    ctx.fillStyle = 'rgba(255,154,74,0.9)';
+    ctx.font = `bold ${11*dpr}px Amiri`;
+    ctx.textAlign = 'center';
+    ctx.fillText(`Chain: ${dgdx.toFixed(3)} × ${dfdg.toFixed(3)} = ${chain.toFixed(3)}`, W/2, dy+34*dpr);
+
+    document.getElementById('comp-xv').textContent = xVal.toFixed(1);
+    document.getElementById('comp-result').textContent = chain.toFixed(4);
+  }
+
+  document.getElementById('comp-x').addEventListener('input', function() {
+    document.getElementById('comp-xv').textContent = (this.value/10).toFixed(1);
+    drawComposite();
+  });
+
+  // ---- PANEL 3: Gradient Descent ----
+  let descX = 1.8;
+  let descHistory = [1.8];
+  let descInterval = null;
+
+  function L(x) { return Math.pow(x*x-1,2) + 0.3*Math.sin(4*x); }
+  function dL(x) { return 4*x*(x*x-1) + 1.2*Math.cos(4*x); }
+
+  function getLR() { return document.getElementById('lr').value / 100; }
+
+  function resetDescent() {
+    stopDescent();
+    descX = 1.8;
+    descHistory = [1.8];
+    drawDescent();
+  }
+
+  function stepDescent() {
+    const lr = getLR();
+    const grad = dL(descX);
+    descX = descX - lr * grad;
+    descX = Math.max(-2.8, Math.min(2.8, descX));
+    descHistory.push(descX);
+    drawDescent();
+  }
+
+  function runDescent() {
+    stopDescent();
+    descInterval = setInterval(() => {
+      stepDescent();
+      if (Math.abs(dL(descX)) < 0.005 || descHistory.length > 200) stopDescent();
+    }, 80);
+  }
+
+  function stopDescent() {
+    if (descInterval) { clearInterval(descInterval); descInterval = null; }
+  }
+
+  document.getElementById('lr').addEventListener('input', function() {
+    document.getElementById('lrv').textContent = (this.value/100).toFixed(2);
+    drawDescent();
+  });
+
+  function drawDescent() {
+    const canvas = document.getElementById('desc-canvas');
+    resizeCanvas(canvas);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const pad = {l:38,r:14,t:20,b:28};
+
+    ctx.clearRect(0,0,W,H);
+
+    const xMin = -2.5, xMax = 2.5;
+    const steps = 300;
+
+    const lVals = [];
+    for (let i = 0; i <= steps; i++) {
+      const x = xMin + i*(xMax-xMin)/steps;
+      lVals.push(L(x));
+    }
+
+    let yMin = Math.min(...lVals) - 0.3;
+    let yMax = Math.max(...lVals) + 0.3;
+
+    function tx(x) { return pad.l*dpr + (x-xMin)/(xMax-xMin)*(W-(pad.l+pad.r)*dpr); }
+    function ty(y) { return (H-pad.b*dpr) - (y-yMin)/(yMax-yMin)*(H-(pad.t+pad.b)*dpr); }
+
+    // Grid
+    ctx.strokeStyle = 'rgba(212,168,67,0.06)';
+    ctx.lineWidth = 1;
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath(); ctx.moveTo(tx(i), pad.t*dpr); ctx.lineTo(tx(i), H-pad.b*dpr); ctx.stroke();
+    }
+
+    // Loss curve
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(232,201,122,0.85)';
+    ctx.lineWidth = 2.5*dpr;
+    for (let i = 0; i <= steps; i++) {
+      const x = xMin + i*(xMax-xMin)/steps;
+      i===0 ? ctx.moveTo(tx(x), ty(lVals[i])) : ctx.lineTo(tx(x), ty(lVals[i]));
+    }
+    ctx.stroke();
+
+    // Path history
+    if (descHistory.length > 1) {
+      ctx.strokeStyle = 'rgba(232,122,122,0.5)';
+      ctx.lineWidth = 1.5*dpr;
+      ctx.beginPath();
+      for (let i = 0; i < descHistory.length; i++) {
+        const x = descHistory[i];
+        const y = L(x);
+        i===0 ? ctx.moveTo(tx(x), ty(y)) : ctx.lineTo(tx(x), ty(y));
+      }
+      ctx.stroke();
+
+      // History dots
+      ctx.fillStyle = 'rgba(232,122,122,0.4)';
+      for (let i = 0; i < descHistory.length-1; i++) {
+        ctx.beginPath();
+        ctx.arc(tx(descHistory[i]), ty(L(descHistory[i])), 2.5*dpr, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+
+    // Gradient arrow at current point
+    const grad = dL(descX);
+    const lAtX = L(descX);
+    const arrowLen = 0.3;
+    ctx.strokeStyle = 'rgba(255,154,74,0.8)';
+    ctx.lineWidth = 2*dpr;
+    ctx.beginPath();
+    ctx.moveTo(tx(descX), ty(lAtX));
+    ctx.lineTo(tx(descX - Math.sign(grad)*arrowLen), ty(lAtX - grad*arrowLen*0.3));
+    ctx.stroke();
+
+    // Current point
+    ctx.fillStyle = 'rgba(255,154,74,1)';
+    ctx.beginPath();
+    ctx.arc(tx(descX), ty(lAtX), 6*dpr, 0, Math.PI*2);
+    ctx.fill();
+
+    // Axis
+    ctx.strokeStyle = 'rgba(212,168,67,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.l*dpr, H-pad.b*dpr);
+    ctx.lineTo(W-pad.r*dpr, H-pad.b*dpr);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(201,184,150,0.4)';
+    ctx.font = `${9*dpr}px Amiri`;
+    ctx.textAlign = 'center';
+    for (let i = -2; i <= 2; i++) ctx.fillText(i, tx(i), H-8*dpr);
+
+    // Update readouts
+    document.getElementById('desc-pos').textContent = descX.toFixed(4);
+    document.getElementById('desc-loss').textContent = lAtX.toFixed(4);
+    document.getElementById('desc-grad').textContent = grad.toFixed(4);
+
+    const lr = getLR();
+    if (Math.abs(grad) < 0.01) {
+      document.getElementById('desc-insight').textContent = `Converged. The gradient is nearly zero — the slope is flat, no direction to descend. This is a minimum. The chain rule found the bottom.`;
+    } else {
+      document.getElementById('desc-insight').textContent = `Gradient = ${grad.toFixed(3)} — the slope at this point, computed via chain rule. Step size = ${lr} × ${grad.toFixed(3)} = ${(lr*grad).toFixed(4)}. Moving ${grad > 0 ? 'left (downhill)' : 'right (downhill)'}. ${descHistory.length} steps taken.`;
+    }
+  }
+
+  // Initial draws
+  drawChain();
+  drawDescent();
+
+  window.addEventListener('resize', () => {
+    const active = document.querySelector('.tab.active');
+    if (!active) return;
+    const idx = [...document.querySelectorAll('.tab')].indexOf(active);
+    if (idx === 0) drawChain();
+    if (idx === 1) drawComposite();
+    if (idx === 2) drawDescent();
+  });
+</script>
+</body>
+</html>
