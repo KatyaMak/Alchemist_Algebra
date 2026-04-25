@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Book of Change · The Alchemist's Algebra</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #c8a96e;
+    --deep-sand: #8b6914;
+    --midnight: #0d0a05;
+    --parchment: #f2e8d0;
+    --gold: #d4a843;
+    --gold-light: #e8c96a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: var(--midnight);
+    color: var(--parchment);
+    font-family: 'Amiri', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .mudejar-bg {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0.07;
+    background-image: repeating-conic-gradient(from 0deg at 50% 50%, var(--gold) 0deg 15deg, transparent 15deg 30deg, var(--sand) 30deg 45deg, transparent 45deg 60deg);
+    background-size: 120px 120px;
+    z-index: 0;
+  }
+
+  .mudejar-overlay {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0.04;
+    background-image: repeating-linear-gradient(45deg, var(--gold) 0px, var(--gold) 1px, transparent 1px, transparent 40px), repeating-linear-gradient(-45deg, var(--gold) 0px, var(--gold) 1px, transparent 1px, transparent 40px);
+    z-index: 0;
+  }
+
+  .container {
+    position: relative; z-index: 1;
+    max-width: 820px; margin: 0 auto;
+    padding: 60px 40px 100px;
+  }
+
+  .series-nav {
+    text-align: center; margin-bottom: 50px;
+    opacity: 0; animation: fadeIn 1s ease 0.1s forwards;
+  }
+  .series-nav span { font-family: 'Amiri', serif; font-size: 0.75rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--sand); opacity: 0.6; }
+  .series-nav .sep { margin: 0 14px; opacity: 0.4; }
+  .series-nav .current { color: var(--gold); opacity: 0.9; }
+
+  /* Wave/flame panel SVG */
+  .wave-panel {
+    width: 260px; height: 260px;
+    margin: 0 auto 50px; display: block;
+    filter: drop-shadow(0 0 18px rgba(212,168,67,0.35));
+    opacity: 0; animation: fadeIn 1.2s ease 0.2s forwards;
+  }
+
+  @keyframes slowRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes slowRotateRev { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+  @keyframes wavePulse { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(1.05); } }
+  @keyframes shimmer { 0%,100% { opacity: 0.85; } 50% { opacity: 1; } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes panelOpen { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .book-header { text-align: center; margin-bottom: 55px; opacity: 0; animation: fadeIn 1.2s ease 0.4s forwards; }
+  .book-header .series-label { font-family: 'Amiri', serif; font-size: 0.8rem; letter-spacing: 0.45em; text-transform: uppercase; color: var(--sand); opacity: 0.7; margin-bottom: 10px; }
+  .book-header .manuscript-num { font-family: 'Amiri', serif; font-size: 0.75rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.6; margin-bottom: 18px; }
+  .book-header h1 { font-family: 'Cinzel Decorative', serif; font-size: 2.2rem; color: var(--gold); line-height: 1.25; text-shadow: 0 0 40px rgba(212,168,67,0.3); margin-bottom: 14px; animation: shimmer 4s ease-in-out infinite; }
+  .book-header .subtitle { font-family: 'IM Fell English', serif; font-style: italic; font-size: 1.05rem; color: var(--sand); opacity: 0.85; line-height: 1.6; }
+
+  .divider { display: flex; align-items: center; gap: 20px; margin: 40px 0; }
+  .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+  .divider-diamond { width: 7px; height: 7px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+
+  .prologue { opacity: 0; animation: fadeIn 1.2s ease 0.6s forwards; }
+  .chapter-marker { font-family: 'Amiri', serif; font-size: 0.75rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.65; margin-bottom: 22px; }
+
+  .prose { font-family: 'IM Fell English', serif; font-size: 1.12rem; line-height: 1.9; color: var(--parchment); }
+  .prose p { margin-bottom: 1.5em; opacity: 0.9; }
+  .prose .opening { font-size: 1.25rem; color: var(--gold-light); font-style: italic; }
+  .prose .arabic-whisper { font-family: 'Amiri', serif; font-size: 1.35rem; text-align: center; color: var(--gold); margin: 2em 0 0.6em; letter-spacing: 0.05em; opacity: 0.82; direction: rtl; }
+  .prose .translation { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.88rem; text-align: center; color: var(--sand); opacity: 0.65; margin-bottom: 2em; }
+
+  /* Chapter cards */
+  .chapters { margin: 55px 0 30px; }
+
+  .chapter-card {
+    border: 1px solid rgba(212,168,67,0.2);
+    margin-bottom: 36px; position: relative;
+    background: rgba(212,168,67,0.025);
+    opacity: 0; animation: fadeIn 1.2s ease forwards;
+    transition: background 0.4s ease, border-color 0.4s ease;
+  }
+  .chapter-card:nth-child(1) { animation-delay: 0.9s; }
+  .chapter-card:nth-child(2) { animation-delay: 1.1s; }
+  .chapter-card:nth-child(3) { animation-delay: 1.3s; }
+  .chapter-card:hover { background: rgba(212,168,67,0.05); border-color: rgba(212,168,67,0.35); }
+  .chapter-card::before { content: ''; position: absolute; top: -1px; left: 28px; width: 70px; height: 2px; background: var(--gold); }
+  .chapter-card::after { content: ''; position: absolute; bottom: -1px; right: 28px; width: 70px; height: 2px; background: var(--gold); }
+
+  .chapter-head { padding: 28px 35px 22px; border-bottom: 1px solid rgba(212,168,67,0.1); display: flex; align-items: flex-start; gap: 28px; }
+  .chapter-numeral { font-family: 'Cinzel Decorative', serif; font-size: 2.4rem; color: var(--gold); opacity: 0.18; line-height: 1; flex-shrink: 0; margin-top: 4px; }
+  .chapter-titles { flex: 1; }
+  .chapter-ordinal { font-family: 'Amiri', serif; font-size: 0.72rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.55; margin-bottom: 8px; }
+  .chapter-name { font-family: 'Cinzel Decorative', serif; font-size: 1rem; color: var(--gold-light); line-height: 1.4; margin-bottom: 6px; }
+  .chapter-tagline { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.9rem; color: var(--sand); opacity: 0.7; }
+  .chapter-body { padding: 26px 35px 30px; }
+  .chapter-desc { font-family: 'IM Fell English', serif; font-size: 1.02rem; line-height: 1.85; color: var(--parchment); opacity: 0.85; margin-bottom: 22px; }
+
+  /* Concept tags */
+  .concept-line { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  .concept-tag {
+    font-family: 'Amiri', serif; font-size: 0.73rem; letter-spacing: 0.12em;
+    color: var(--sand); border: 1px solid rgba(200,169,110,0.25);
+    padding: 4px 12px; cursor: pointer; background: transparent;
+    transition: all 0.3s ease;
+  }
+  .concept-tag:hover { color: var(--gold-light); border-color: rgba(212,168,67,0.55); background: rgba(212,168,67,0.06); }
+  .concept-tag.active { color: var(--gold); border-color: rgba(212,168,67,0.7); background: rgba(212,168,67,0.08); }
+  .concept-tag.dormant { cursor: default; opacity: 0.38; }
+
+  /* Concept panels */
+  .concept-panel { display: none; margin-top: 16px; border: 1px solid rgba(212,168,67,0.18); border-left: 3px solid rgba(212,168,67,0.5); background: rgba(13,10,5,0.75); padding: 24px 28px; }
+  .concept-panel.open { display: block; animation: panelOpen 0.35s ease forwards; }
+  .concept-panel-title { font-family: 'Cinzel Decorative', serif; font-size: 0.82rem; color: var(--gold); letter-spacing: 0.08em; margin-bottom: 14px; opacity: 0.9; }
+  .concept-panel-body { font-family: 'IM Fell English', serif; font-size: 0.97rem; line-height: 1.82; color: var(--parchment); opacity: 0.88; margin-bottom: 16px; }
+  .concept-panel-body em { color: var(--gold-light); font-style: italic; }
+  .concept-panel-numpy { font-family: 'Courier New', monospace; font-size: 0.78rem; color: #7ecfb3; background: rgba(26,92,74,0.15); border: 1px solid rgba(26,92,74,0.3); padding: 8px 14px; margin-bottom: 14px; letter-spacing: 0.04em; }
+  .concept-panel-ds { font-family: 'Amiri', serif; font-size: 0.8rem; letter-spacing: 0.06em; color: var(--sand); opacity: 0.6; border-top: 1px solid rgba(212,168,67,0.1); padding-top: 12px; font-style: italic; }
+
+  /* Story block — Pilgrimage of H */
+  .story-block {
+    margin: 22px 0;
+    padding: 24px 28px;
+    border-left: 2px solid rgba(212,168,67,0.3);
+    background: rgba(212,168,67,0.02);
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 1rem;
+    line-height: 1.9;
+    color: var(--parchment);
+    opacity: 0.88;
+  }
+  .story-block .story-title {
+    font-family: 'Amiri', serif; font-style: normal;
+    font-size: 0.7rem; letter-spacing: 0.35em;
+    text-transform: uppercase; color: var(--gold);
+    opacity: 0.6; margin-bottom: 16px; display: block;
+  }
+  .story-block p { margin-bottom: 1.1em; }
+  .story-block p:last-child { margin-bottom: 0; }
+
+  /* Artifact buttons */
+  .artifact-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(212,168,67,0.1); }
+  .artifact-section-label { font-family: 'Amiri', serif; font-size: 0.68rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.5; margin-bottom: 16px; }
+  .artifact-buttons { display: flex; flex-direction: column; gap: 10px; }
+
+  .artifact-btn {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 14px 18px;
+    border: 1px solid rgba(212,168,67,0.22);
+    background: rgba(212,168,67,0.02);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .artifact-btn:hover {
+    background: rgba(212,168,67,0.07);
+    border-color: rgba(212,168,67,0.45);
+  }
+  .artifact-btn-glyph {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.75rem;
+    color: var(--gold);
+    opacity: 0.55;
+    flex-shrink: 0;
+    margin-top: 2px;
+    letter-spacing: 0.05em;
+  }
+  .artifact-btn-text { flex: 1; }
+  .artifact-btn-name {
+    font-family: 'IM Fell English', serif;
+    font-size: 0.97rem;
+    color: var(--gold-light);
+    margin-bottom: 4px;
+    display: block;
+  }
+  .artifact-btn-desc {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--sand);
+    opacity: 0.7;
+    line-height: 1.55;
+  }
+  .artifact-btn-arrow {
+    font-family: 'Amiri', serif;
+    font-size: 0.8rem;
+    color: var(--gold);
+    opacity: 0.4;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: opacity 0.3s ease;
+  }
+  .artifact-btn:hover .artifact-btn-arrow { opacity: 0.8; }
+
+  /* Held space */
+  .held-space { margin-top: 24px; padding: 22px 26px; border-left: 2px solid rgba(212,168,67,0.25); background: rgba(212,168,67,0.022); }
+  .held-space-label { font-family: 'Amiri', serif; font-size: 0.68rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.5; margin-bottom: 14px; }
+  .held-space-filled { font-family: 'IM Fell English', serif; font-size: 0.97rem; line-height: 1.85; color: var(--parchment); opacity: 0.82; }
+  .held-space-filled p { margin-bottom: 1.1em; }
+  .held-space-filled p:last-child { margin-bottom: 0; }
+  .held-space-filled em { color: var(--gold-light); font-style: italic; }
+  .held-space-filled .hs-date { font-family: 'Amiri', serif; font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--sand); opacity: 0.4; margin-bottom: 16px; display: block; }
+  .held-space-interior { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.88rem; color: var(--sand); opacity: 0.35; line-height: 1.6; }
+
+  .hl { color: var(--gold-light); font-style: italic; }
+
+  /* Closing */
+  .closing { text-align: center; margin-top: 65px; padding-top: 40px; border-top: 1px solid rgba(212,168,67,0.12); opacity: 0; animation: fadeIn 1.2s ease 1.6s forwards; }
+  .closing svg { width: 55px; height: 55px; margin: 0 auto 22px; display: block; opacity: 0.5; }
+  .closing p { font-family: 'IM Fell English', serif; font-style: italic; font-size: 1rem; color: var(--sand); opacity: 0.72; line-height: 1.85; max-width: 480px; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<div class="mudejar-bg"></div>
+<div class="mudejar-overlay"></div>
+
+<div class="container">
+
+  <div class="series-nav">
+    <span>The Alchemist's Algebra</span>
+    <span class="sep">·</span>
+    <span>Second Manuscript</span>
+    <span class="sep">·</span>
+    <span class="current">The Book of Change</span>
+  </div>
+
+  <!-- Wave SVG — derivative tangent line + s-curve -->
+  <svg class="wave-panel" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="waveGlow" cx="50%" cy="55%" r="45%">
+        <stop offset="0%" stop-color="#d4a843" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#d4a843" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <circle cx="130" cy="130" r="125" fill="none" stroke="#d4a843" stroke-width="0.5" opacity="0.25"/>
+    <circle cx="130" cy="130" r="118" fill="none" stroke="#c8a96e" stroke-width="0.3" opacity="0.15"/>
+
+    <!-- Outer rotating star -->
+    <g style="animation: slowRotate 90s linear infinite; transform-origin: 130px 130px;" opacity="0.4">
+      <polygon points="130,10 145,65 200,50 165,95 210,120 160,130 210,140 165,165 200,210 145,195 130,250 115,195 60,210 95,165 50,140 100,130 50,120 95,95 60,50 115,65"
+               fill="none" stroke="#d4a843" stroke-width="0.7"/>
+    </g>
+
+    <!-- Inner star rotating reverse -->
+    <g style="animation: slowRotateRev 120s linear infinite; transform-origin: 130px 130px;" opacity="0.45">
+      <polygon points="130,75 143,115 183,115 151,138 163,178 130,155 97,178 109,138 77,115 117,115"
+               fill="none" stroke="#c8a96e" stroke-width="0.9"/>
+    </g>
+
+    <!-- S-curve (integral/accumulation feel) — pulsing -->
+    <g style="animation: wavePulse 5s ease-in-out infinite; transform-origin: 130px 130px;" opacity="0.85">
+      <path d="M 45,175 C 68,175 80,130 130,130 C 180,130 192,85 215,85"
+            fill="none" stroke="#e8c96a" stroke-width="2" stroke-linecap="round"/>
+      <!-- Tangent line at inflection -->
+      <line x1="95" y1="152" x2="165" y2="108" stroke="#d4a843" stroke-width="1.3" stroke-linecap="round" opacity="0.7"/>
+      <!-- Tangent point -->
+      <circle cx="130" cy="130" r="4.5" fill="#d4a843" opacity="0.95"/>
+      <!-- Small circle markers -->
+      <circle cx="45" cy="175" r="3" fill="none" stroke="#d4a843" stroke-width="1" opacity="0.5"/>
+      <circle cx="215" cy="85" r="3" fill="none" stroke="#d4a843" stroke-width="1" opacity="0.5"/>
+    </g>
+
+    <circle cx="130" cy="130" r="55" fill="url(#waveGlow)" opacity="0.15"/>
+
+    <g opacity="0.25" stroke="#d4a843" stroke-width="0.5">
+      <line x1="130" y1="8" x2="130" y2="20"/>
+      <line x1="130" y1="240" x2="130" y2="252"/>
+      <line x1="8" y1="130" x2="20" y2="130"/>
+      <line x1="240" y1="130" x2="252" y2="130"/>
+    </g>
+  </svg>
+
+  <div class="book-header">
+    <div class="series-label">The Alchemist's Algebra · Statistics &amp; Calculus</div>
+    <div class="manuscript-num">Second Manuscript</div>
+    <h1>The Book of Change</h1>
+    <div class="subtitle">On what the world tends toward when chance runs many times,<br>on the rate of change at a single instant, and on what accumulates<br>across all the instants together</div>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+  <div class="prologue">
+    <div class="chapter-marker">Prologue · On the Nature of This Manuscript</div>
+    <div class="prose">
+      <p class="opening">Everything that lives, changes. Everything that changes, has a rate. Everything that has a rate, has a derivative.</p>
+      <p>The first mathematicians who asked about motion found themselves confronted with a paradox: to know the speed of something at a single instant, you must compare two positions — but two positions require two moments, and a single instant has only one. Zeno saw this and declared motion impossible. Newton saw it and invented calculus.</p>
+      <p>The answer was not to ignore the paradox but to approach it without touching it. Not to reach the single instant — but to ask: <em>what does the measurement approach, as the two moments draw infinitely close together?</em> The limit. The destination that the calculation is always traveling toward, even if it never quite arrives.</p>
+      <div class="arabic-whisper">التغيير هو الثابت الوحيد</div>
+      <div class="translation">Change is the only constant.</div>
+      <p>This manuscript holds three chapters. The first concerns what we expect from the world when chance runs many times — the mathematics of the average, the normal, the distributed. The second concerns the derivative: what it is, where it comes from, and how the same calculation that finds the slope of a curve becomes the engine that trains a neural network. The third concerns what accumulates — the integral, the area beneath the curve, the sum of all the instants.</p>
+      <p>Neither chapter is about formulas. All three are about the shape of the question that made the formula necessary.</p>
+    </div>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-diamond"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+  <div class="chapter-marker" style="text-align:center; margin-bottom: 36px;">The Three Chapters · The Rooms of This Manuscript</div>
+
+  <div class="chapters">
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- CHAPTER I — ALIVE                           -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="chapter-card">
+      <div class="chapter-head">
+        <div class="chapter-numeral">I</div>
+        <div class="chapter-titles">
+          <div class="chapter-ordinal">First Chapter · Completed</div>
+          <div class="chapter-name">Expected Values and the Normal Distribution</div>
+          <div class="chapter-tagline">What reality tends toward, when chance runs many times</div>
+        </div>
+      </div>
+      <div class="chapter-body">
+        <div class="chapter-desc">
+          Not what will happen — but the <span class="hl">center of gravity</span> of all possible happenings, weighted by their likelihood. A single experiment produces an outcome. Many experiments produce a distribution. And when you average across enough samples drawn from almost any distribution, something remarkable occurs: those averages arrange themselves into the same familiar shape, every time, regardless of what generated them.
+          <br><br>
+          This is the architecture beneath statistics. Not a collection of formulas but a single deep fact about what averaging does to randomness at scale — and why the bell curve appears everywhere it does.
+        </div>
+
+        <div class="concept-line">
+          <span class="concept-tag" onclick="togglePanel(event,'ev')">expected value</span>
+          <span class="concept-tag" onclick="togglePanel(event,'clt')">central limit theorem</span>
+          <span class="concept-tag" onclick="togglePanel(event,'normal')">normal distribution</span>
+          <span class="concept-tag" onclick="togglePanel(event,'variance')">variance &amp; standard deviation</span>
+          <span class="concept-tag" onclick="togglePanel(event,'scipy')">NumPy &amp; SciPy</span>
+        </div>
+
+        <!-- EXPECTED VALUE -->
+        <div id="panel-ev" class="concept-panel">
+          <div class="concept-panel-title">Expected Value</div>
+          <div class="concept-panel-body">
+            Not a prediction of any single outcome. The <em>center of gravity</em> of all possible outcomes, each weighted by the probability that it occurs. Roll a fair die enough times and the average settles toward 3.5 — which no single roll ever produces. 3.5 is not a result. It is the structure the results orbit.<br><br>
+            Expected value is the bridge between probability and measurement. It asks: if the experiment ran forever, where would the average land? The answer is not uncertain — it is mathematically determined by the distribution itself. This is why actuaries can price risk without knowing which house will burn, why casinos profit without knowing which player will win. The individual outcome is unpredictable. The long-run average is exact.
+          </div>
+          <div class="concept-panel-numpy">E[X] = Σ x·P(x) &nbsp;·&nbsp; np.mean(samples) &nbsp;·&nbsp; np.average(values, weights=probs)</div>
+          <div class="concept-panel-ds">In data science — expected value underlies loss functions, model evaluation, and Bayesian updating. The mean of a distribution is its expected value. Every prediction a model makes is an implicit claim about expected value.</div>
+        </div>
+
+        <!-- CLT -->
+        <div id="panel-clt" class="concept-panel">
+          <div class="concept-panel-title">The Central Limit Theorem</div>
+          <div class="concept-panel-body">
+            The most astonishing theorem in all of statistics. Take any random variable — dice, wages, heights, anything. Sample from it repeatedly and calculate the sample mean each time. As the number of samples grows, those means will arrange themselves into a normal distribution — regardless of the shape of the original variable.<br><br>
+            Not approximately. Exactly, in the limit. The original distribution can be skewed, bimodal, uniform, wildly irregular — it does not matter. The means converge to the bell curve. <em>This is why the normal distribution appears everywhere in nature: not because the world is normally distributed, but because averages always are.</em> The theorem doesn't describe the world. It describes what happens to information when you aggregate it.
+          </div>
+          <div class="concept-panel-numpy">sample_means = [np.mean(np.random.choice(population, size=n)) for _ in range(1000)] &nbsp;·&nbsp; plt.hist(sample_means)</div>
+          <div class="concept-panel-ds">In data science — the CLT justifies using normal-distribution assumptions for hypothesis testing even when data isn't normal, provided sample sizes are large enough. It is the theoretical foundation beneath much of frequentist statistics.</div>
+        </div>
+
+        <!-- NORMAL DISTRIBUTION -->
+        <div id="panel-normal" class="concept-panel">
+          <div class="concept-panel-title">Normal Distribution</div>
+          <div class="concept-panel-body">
+            What emerges when many small, independent forces push in many directions and no single force dominates. The bell curve. Symmetrical, with most mass at the center and thin tails at the extremes. Two parameters determine everything: the mean marks the center, the standard deviation measures the spread.<br><br>
+            Probabilities correspond to areas under this curve — which is exactly where calculus enters the story. The area beneath a continuous distribution requires integration, integration requires derivatives to understand, and so the first and second chapters of this manuscript are not separate subjects. <em>They are the same question approached from two directions.</em> Statistics asks what the shape is. Calculus asks how to measure what's under it.
+          </div>
+          <div class="concept-panel-numpy">scipy.stats.norm(loc=μ, scale=σ) &nbsp;·&nbsp; .pdf(x) .cdf(x) .ppf(q) &nbsp;·&nbsp; np.random.normal(μ, σ, size=n)</div>
+          <div class="concept-panel-ds">In data science — normality assumptions underlie linear regression, many hypothesis tests, and confidence intervals. Knowing when data is normal (and when it isn't) determines which tools are valid.</div>
+        </div>
+
+        <!-- VARIANCE & SD -->
+        <div id="panel-variance" class="concept-panel">
+          <div class="concept-panel-title">Variance &amp; Standard Deviation</div>
+          <div class="concept-panel-body">
+            The mean tells you where the distribution is centered. Variance tells you how far it spreads from that center. It is the average of the squared distances from the mean — squared to eliminate the sign, so that deviations above and below the center don't cancel each other out.<br><br>
+            Standard deviation is the square root of variance: it restores the units to those of the original data. A distribution with small standard deviation is tightly clustered around its mean. A large standard deviation means the outcomes are widely scattered. <em>The bell curve's width is entirely determined by its standard deviation.</em> Change the mean and the curve slides left or right. Change the standard deviation and it narrows or broadens. These two numbers contain the whole shape.
+          </div>
+          <div class="concept-panel-numpy">np.var(data) &nbsp;·&nbsp; np.std(data) &nbsp;·&nbsp; ddof=1 for sample (unbiased) vs population variance</div>
+          <div class="concept-panel-ds">In data science — standard deviation is the fundamental measure of spread. Feature scaling (standardization) divides by standard deviation. Outliers are defined relative to it. Confidence intervals are built from it.</div>
+        </div>
+
+        <!-- NUMPY & SCIPY -->
+        <div id="panel-scipy" class="concept-panel">
+          <div class="concept-panel-title">NumPy &amp; SciPy</div>
+          <div class="concept-panel-body">
+            NumPy provides the numerical foundations — arrays, random sampling, descriptive statistics. SciPy extends into the territory of distributions: not just generating samples but computing probabilities, cumulative areas, quantiles, and performing statistical tests.<br><br>
+            The division is intuitive: NumPy handles the arithmetic of arrays, SciPy handles the mathematics of probability. Together they close the gap between a distribution defined in theory and a distribution computed from data. And the autograder that rejects correct code because the import is in the wrong place — <em>that too is a lesson.</em> Mathematical truth and implementation constraint are different things. Both are real. Both must be satisfied.
+          </div>
+          <div class="concept-panel-numpy">import numpy as np &nbsp;·&nbsp; from scipy import stats &nbsp;·&nbsp; stats.norm.cdf(x) &nbsp;·&nbsp; stats.ttest_ind(a, b)</div>
+          <div class="concept-panel-ds">In data science — SciPy's stats module is the standard library for probability distributions and hypothesis testing. Understanding what it computes, not just how to call it, is the difference between using statistics and understanding it.</div>
+        </div>
+
+        <!-- HELD SPACE — CHAPTER I -->
+        <div class="held-space">
+          <div class="held-space-label">What arrived here · First Chapter</div>
+          <div class="held-space-filled">
+            <span class="hs-date">19 April 2026</span>
+            <p>The expected value arrived not as a formula but as an image: the center of gravity of all possible outcomes, the number the results circle around across infinite repetitions. Not what will happen — the structure beneath what happens. A card sharp who plays not for any single hand but for the hidden geometry of the odds.</p>
+            <p>The Central Limit Theorem landed as genuinely astonishing — not approximately true, exactly true in the limit. The original distribution can be anything: skewed, bimodal, chaotic. The means converge to the bell curve anyway. The world is not normally distributed. <em>Averages always are.</em> This is not a description of nature. It is a fact about what aggregation does to randomness.</p>
+            <p>The lab taught a second lesson alongside the mathematics: the autograder failed on correct code because the import was outside the function body. Mathematical truth and implementation constraint are different things. The code was right before the forum post. The forum post revealed what right meant to the machine checking it. Both definitions of correct were real. Both had to be satisfied simultaneously.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- CHAPTER II — ALIVE                          -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="chapter-card">
+      <div class="chapter-head">
+        <div class="chapter-numeral">II</div>
+        <div class="chapter-titles">
+          <div class="chapter-ordinal">Second Chapter · Completed</div>
+          <div class="chapter-name">Derivatives</div>
+          <div class="chapter-tagline">The Language of Instantaneous Change · The rate at which the world is changing, right now</div>
+        </div>
+      </div>
+      <div class="chapter-body">
+        <div class="chapter-desc">
+          To know the speed of something at a single instant, you must compare two positions — but two positions require two moments, and a single instant has only one. The resolution: never reach the point. Instead, ask what the measurement <span class="hl">approaches</span> as the two moments draw infinitely close together. The limit. Not an approximation — the exact value of the destination the calculation is always traveling toward.
+          <br><br>
+          From this single question, the entire architecture of calculus unfolds: power rule, chain rule, gradient descent. And at the end of the chain, backpropagation — the algorithm that made the video that started everything possible.
+        </div>
+
+        <!-- The Pilgrimage of H — inside Chapter II, before the tags -->
+        <div class="story-block">
+          <span class="story-title">The Pilgrimage of H · Written April 2026</span>
+          <p>There was once a traveler who wanted to know the speed of a river at a single point — not upstream, not downstream, but here, at this exact stone, at this exact moment.</p>
+          <p>He did what anyone would do. He dropped two sticks into the water — one here, one a little downstream — and measured how long the second stick took to reach the first. Distance divided by time. A number arrived. He wrote it down.</p>
+          <p>But the number troubled him. Because the river between the sticks was not the river at the stone. It was the river between. He had measured a stretch when he wanted a moment.</p>
+          <p>So he moved the sticks closer together. The number changed slightly. Closer still. It changed again, less this time. He kept going — closer, closer — watching the number settle, like sediment finding the bottom of still water.</p>
+          <p>He never placed the sticks in the same spot. He knew he couldn't. A distance of zero, a time of zero — that way lies division by nothing, which is the one door mathematics will not open.</p>
+          <p>But he saw where the number was going. He saw its destination, even though it never arrived.</p>
+          <p>That destination — the value the number eternally approached without touching — was the speed of the river at the stone. Exact. True. Unreachable by measurement, but knowable by understanding.</p>
+          <p>He had not measured it. He had <em>seen</em> it.</p>
+          <p><em>That is what calculus is. Not a technique. A change in what you are able to see.</em></p>
+        </div>
+
+        <div class="concept-line">
+          <span class="concept-tag" onclick="togglePanel(event,'limits')">limits</span>
+          <span class="concept-tag" onclick="togglePanel(event,'powerrule')">power rule</span>
+          <span class="concept-tag" onclick="togglePanel(event,'chainrule')">chain rule</span>
+          <span class="concept-tag" onclick="togglePanel(event,'gradient')">gradient descent</span>
+          <span class="concept-tag" onclick="togglePanel(event,'partial')">partial derivatives</span>
+          <span class="concept-tag" onclick="togglePanel(event,'sympy')">SymPy</span>
+        </div>
+
+        <!-- LIMITS -->
+        <div id="panel-limits" class="concept-panel">
+          <div class="concept-panel-title">Limits</div>
+          <div class="concept-panel-body">
+            The derivative cannot be calculated at a single point directly — to measure change you need two positions, but a single instant has only one. The resolution: never reach the point. Ask what the measurement <em>approaches</em> as the interval shrinks toward zero.<br><br>
+            This is not approximation. It is the exact value of the destination the calculation is always traveling toward. The limit exists when the expression approaches the same value from both sides. When it does, the derivative exists. When it does not — the function has a corner, a jump, a discontinuity — the derivative fails at that point. The tool works best when the function is smooth and continuous. Zeno saw the paradox and concluded motion was impossible. The limit sees the same paradox and concludes: <em>we don't need to arrive. We need to see where we're going.</em>
+          </div>
+          <div class="concept-panel-numpy">from sympy import limit, symbols, oo &nbsp;·&nbsp; limit(expr, x, 0) &nbsp;·&nbsp; numerical: (f(x+h) - f(x)) / h as h → 0</div>
+          <div class="concept-panel-ds">In data science — limits underlie the definition of every derivative used in optimization. Understanding them means understanding why gradient descent works, and why it sometimes doesn't.</div>
+        </div>
+
+        <!-- POWER RULE -->
+        <div id="panel-powerrule" class="concept-panel">
+          <div class="concept-panel-title">Power Rule</div>
+          <div class="concept-panel-body">
+            The derivative of xⁿ is n·xⁿ⁻¹. Not a rule handed down from authority — what survives when the limit process is applied to a polynomial term using the binomial theorem. Expand (x+h)ⁿ. Subtract xⁿ. Divide by h. Let h approach zero. Most terms still contain h and vanish. The only survivor is n·xⁿ⁻¹ — the only term where h cancels completely.<br><br>
+            <em>The power drops by one with each differentiation.</em> Distance is cubic → speed is squared → acceleration is linear → jerk is constant → the next derivative is zero. This is not coincidence. It is what must happen when you ask "how fast is this changing" of a polynomial, recursively. In Russian: производные — produced things. The derivative is not a reduction of the function. It is what the function generates at each moment.
+          </div>
+          <div class="concept-panel-numpy">from sympy import diff, symbols &nbsp;·&nbsp; x = symbols('x') &nbsp;·&nbsp; diff(x**3 + 2*x, x) &nbsp;→&nbsp; 3x² + 2</div>
+          <div class="concept-panel-ds">In data science — the power rule is applied in every polynomial feature, every activation function derivative, every gradient computation in a neural network layer.</div>
+        </div>
+
+        <!-- CHAIN RULE -->
+        <div id="panel-chainrule" class="concept-panel">
+          <div class="concept-panel-title">Chain Rule</div>
+          <div class="concept-panel-body">
+            When one function sits inside another, the chain rule finds the derivative of the whole by multiplying the individual sensitivities. The derivative of f(g(x)) is f′(g(x)) · g′(x). The outer function's rate of change, times the inner function's rate of change. Named for its structure: the functions are linked in a chain, each link's sensitivity multiplying the next.<br><br>
+            The chain rule is not an advanced topic. It is the engine underneath every neural network ever trained. <em>Backpropagation — the algorithm that makes gradient descent computable through many layers — is the chain rule applied recursively, backward through each layer in sequence.</em> Karpathy built this from scratch. The derivative explorer artifact below shows the same mathematics at smaller scale. The chain is the same chain. The links are just more numerous.
+          </div>
+          <div class="concept-panel-numpy">diff(f(g(x)), x) = diff(f, g) * diff(g, x) &nbsp;·&nbsp; sympy handles this automatically via diff()</div>
+          <div class="concept-panel-ds">In data science — the chain rule is backpropagation. Every weight update in every neural network is the chain rule applied through the computational graph, layer by layer, back to the input.</div>
+        </div>
+
+        <!-- GRADIENT DESCENT -->
+        <div id="panel-gradient" class="concept-panel">
+          <div class="concept-panel-title">Gradient Descent</div>
+          <div class="concept-panel-body">
+            A loss function measures how wrong a model's predictions are. To make the model less wrong, move in the direction that reduces the loss — downhill on the loss surface. The gradient tells you which direction is downhill: it is a vector of partial derivatives, one for each parameter, each one measuring the slope in that parameter's direction.<br><br>
+            The update rule: θ_new = θ − α · ∇L. Subtract a fraction of the gradient from the current position. Repeat. The learning rate α controls the step size. Too large — the step overshoots the minimum and the loss grows. Too small — convergence is very slow. The orange dot in the gradient descent artifact finds the bottom when the gradient approaches zero: the stationary point, where the slope is flat, where there is nothing left to descend toward. <em>This is what Karpathy built. This is the video that started everything.</em>
+          </div>
+          <div class="concept-panel-numpy">theta = theta - learning_rate * gradient &nbsp;·&nbsp; for each step until np.linalg.norm(gradient) &lt; tolerance</div>
+          <div class="concept-panel-ds">In data science — gradient descent is the universal optimization algorithm. Every ML model that learns from data is performing some variant of it: batch, stochastic, or mini-batch.</div>
+        </div>
+
+        <!-- PARTIAL DERIVATIVES -->
+        <div id="panel-partial" class="concept-panel">
+          <div class="concept-panel-title">Partial Derivatives</div>
+          <div class="concept-panel-body">
+            When a function depends on multiple variables, the partial derivative asks: if I change just this one variable, holding everything else frozen — how does the output change? The other variables become constants. Constants vanish under the power rule or multiply through unchanged.<br><br>
+            For f(x,y) = x²y + y³: the partial with respect to x treats y as frozen — result: 2xy. The partial with respect to y treats x as frozen — result: x² + 3y². In a neural network with millions of parameters, there are millions of partial derivatives — one per weight. Together they form the gradient vector. Gradient descent follows all of them simultaneously. <em>This was the first derivative calculated in one's own head, before reading the answer. April 2026. Ten lectures done.</em>
+          </div>
+          <div class="concept-panel-numpy">from sympy import diff &nbsp;·&nbsp; diff(f, x) for ∂f/∂x &nbsp;·&nbsp; diff(f, y) for ∂f/∂y &nbsp;·&nbsp; gradient = [∂f/∂x, ∂f/∂y]</div>
+          <div class="concept-panel-ds">In data science — the gradient of the loss function is the vector of all partial derivatives with respect to model parameters. Computing it efficiently (via backpropagation) is what makes deep learning trainable.</div>
+        </div>
+
+        <!-- SYMPY -->
+        <div id="panel-sympy" class="concept-panel">
+          <div class="concept-panel-title">SymPy</div>
+          <div class="concept-panel-body">
+            SymPy is symbolic mathematics in Python — the difference between computing a number and computing a form. Where NumPy evaluates expressions at specific values, SymPy manipulates the expressions themselves: differentiating, integrating, simplifying, factoring, solving symbolically.<br><br>
+            <em>diff(x**3 + 2*x, x)</em> returns <em>3*x**2 + 2</em> — not a number but the derivative as a mathematical object, ready to be evaluated anywhere or manipulated further. This is how you verify the power rule, explore the chain rule, compute partial derivatives without choosing specific values first. SymPy is the Alchemist's workbench for calculus: the place where the form of the mathematics is held and examined before the numbers arrive.
+          </div>
+          <div class="concept-panel-numpy">from sympy import symbols, diff, integrate, limit, simplify &nbsp;·&nbsp; x = symbols('x') &nbsp;·&nbsp; expr.subs(x, 2)</div>
+          <div class="concept-panel-ds">In data science — SymPy is used for deriving gradient expressions, verifying automatic differentiation, and understanding the mathematical structure of algorithms before implementing them numerically.</div>
+        </div>
+
+        <!-- ARTIFACT BUTTONS -->
+        <div class="artifact-section">
+          <div class="artifact-section-label">Instruments Built · Second Chapter</div>
+          <div class="artifact-buttons">
+            <a href="artifacts/derivative_explorer.html" target="_blank" class="artifact-btn">
+              <div class="artifact-btn-glyph">◆ I</div>
+              <div class="artifact-btn-text">
+                <span class="artifact-btn-name">The Derivative Explorer</span>
+                <span class="artifact-btn-desc">A car. A speed curve. Rectangles becoming infinitely thin. Two sliders: one for the number of approximating rectangles, one for the moment in time. The orange tangent line shows the derivative at each moment. The slope of the distance curve equals the speed equals the derivative — same number, three descriptions.</span>
+              </div>
+              <div class="artifact-btn-arrow">→</div>
+            </a>
+            <a href="artifacts/polynomial_derivatives.html" target="_blank" class="artifact-btn">
+              <div class="artifact-btn-glyph">◆ II</div>
+              <div class="artifact-btn-text">
+                <span class="artifact-btn-name">Polynomial Derivatives</span>
+                <span class="artifact-btn-desc">Three terms, six sliders. Adjust constants and powers; watch the power rule apply, constants vanish, terms combine. The gold curve is the polynomial. The orange curve is its derivative. The power always drops by one.</span>
+              </div>
+              <div class="artifact-btn-arrow">→</div>
+            </a>
+            <a href="artifacts/chain_rule_gradient.html" target="_blank" class="artifact-btn">
+              <div class="artifact-btn-glyph">◆ III</div>
+              <div class="artifact-btn-text">
+                <span class="artifact-btn-name">Chain Rule → Gradient Descent</span>
+                <span class="artifact-btn-desc">Three tabs. The first shows the chain rule decomposing f(g(x)) into its multiplied sensitivities. The second shows two functions in sequence — input through g, output through f. The third shows gradient descent on a loss surface: set the learning rate too high, watch it diverge. Set it low, watch the gradient approach zero. The same mathematics. Two names for two moments in the same story.</span>
+              </div>
+              <div class="artifact-btn-arrow">→</div>
+            </a>
+          </div>
+        </div>
+
+        <!-- HELD SPACE — CHAPTER II -->
+        <div class="held-space">
+          <div class="held-space-label">What arrived here · Second Chapter</div>
+          <div class="held-space-filled">
+            <span class="hs-date">22 April 2026</span>
+            <p>The limit arrived as a change in what you are able to see. The traveler drops two sticks in the river, moves them closer and closer together, watches the number settle — and sees the destination the number is traveling toward without ever reaching it. He never measures the speed at the stone directly. He sees it. That is what calculus is.</p>
+            <p>The power rule landed not as a memorized shortcut but as a residue: expand (x+h)ⁿ, subtract xⁿ, divide by h, let h approach zero. Every term still containing h vanishes. The only survivor is n·xⁿ⁻¹ — because it is the only term where h canceled completely before the limit was taken. The rule is what the limit process always leaves behind. In Russian: производные — produced things. The derivative is not a reduction. It is what the function generates.</p>
+            <p>The partial derivative was the first one calculated alone, in the head, before reading the answer. f(x,y) = x²y + y³. Hold y frozen, differentiate with respect to x: 2xy. Hold x frozen, differentiate with respect to y: x² + 3y². The gradient is both of them together — the vector that points most steeply uphill on the loss surface, and whose negative is the direction gradient descent follows downhill. <em>Ten lectures done. The same mathematics Karpathy used. Named now, and understood from the inside.</em></p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- CHAPTER III — WAITING                       -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="chapter-card">
+      <div class="chapter-head">
+        <div class="chapter-numeral">III</div>
+        <div class="chapter-titles">
+          <div class="chapter-ordinal">Third Chapter</div>
+          <div class="chapter-name">Integrals</div>
+          <div class="chapter-tagline">The Mathematics of Accumulation · On area, summation, and the fundamental theorem</div>
+        </div>
+      </div>
+      <div class="chapter-body">
+        <div class="chapter-desc">
+          The derivative asks what is happening at this exact instant. The integral asks what has accumulated across all the instants together. They are not separate tools — they are the same question asked from opposite directions. The <span class="hl">Fundamental Theorem of Calculus</span> is the statement of this symmetry: differentiation and integration are inverse operations, each undoing what the other does.
+          <br><br>
+          Area under a curve. Total probability across a distribution. Cumulative change over time. These are all integrals — and the normal distribution, which appeared in Chapter I as a shape, becomes in Chapter III a question of area: what fraction of outcomes fall within one standard deviation? Two? The bell curve is not just a shape. It is a function to be integrated.
+        </div>
+        <div class="concept-line">
+          <span class="concept-tag dormant">Riemann sums</span>
+          <span class="concept-tag dormant">definite integrals</span>
+          <span class="concept-tag dormant">fundamental theorem</span>
+          <span class="concept-tag dormant">area under distributions</span>
+          <span class="concept-tag dormant">SymPy integration</span>
+        </div>
+        <div class="held-space">
+          <div class="held-space-label">What accumulates here</div>
+          <div class="held-space-interior">This space will hold what arrives as the chapter is worked through — the moment a concept lands, the notation that finally made sense, the connection that arrived sideways.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .chapters -->
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+  <div class="closing">
+    <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="30" cy="30" r="28" fill="none" stroke="#d4a843" stroke-width="0.8" opacity="0.6"/>
+      <path d="M 10,40 C 15,40 18,20 30,20 C 42,20 45,40 50,40"
+            fill="none" stroke="#d4a843" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+      <line x1="20" y1="35" x2="40" y2="25" stroke="#d4a843" stroke-width="0.8" opacity="0.6" stroke-linecap="round"/>
+      <circle cx="30" cy="30" r="2.5" fill="#d4a843" opacity="0.8"/>
+    </svg>
+    <p>
+      The derivative is not a reduction.<br>
+      It is what the function generates at each moment.<br>
+      The limit is not an approximation.<br>
+      It is the destination the measurement was always traveling toward.<br><br>
+      <em>Two chapters completed. One room still waiting.</em><br>
+      <em>The pilgrim returned. The river looked the same.</em>
+    </p>
+  </div>
+
+</div>
+
+<script>
+  let openPanel = null;
+
+  function togglePanel(e, id) {
+    const panel = document.getElementById('panel-' + id);
+    const allTags = document.querySelectorAll('.concept-tag:not(.dormant)');
+
+    if (openPanel === id) {
+      panel.classList.remove('open');
+      allTags.forEach(t => t.classList.remove('active'));
+      openPanel = null;
+      return;
+    }
+
+    if (openPanel) {
+      const prev = document.getElementById('panel-' + openPanel);
+      if (prev) prev.classList.remove('open');
+    }
+
+    allTags.forEach(t => t.classList.remove('active'));
+    e.target.classList.add('active');
+    panel.classList.add('open');
+    openPanel = id;
+
+    setTimeout(() => {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 60);
+  }
+</script>
+
+</body>
+</html>
