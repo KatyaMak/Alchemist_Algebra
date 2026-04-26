@@ -571,13 +571,13 @@
     </div>
 
     <!-- ═══════════════════════════════════════════ -->
-    <!-- CHAPTER III — WAITING                       -->
+    <!-- CHAPTER III — ALIVE                          -->
     <!-- ═══════════════════════════════════════════ -->
     <div class="chapter-card">
       <div class="chapter-head">
         <div class="chapter-numeral">III</div>
         <div class="chapter-titles">
-          <div class="chapter-ordinal">Third Chapter</div>
+          <div class="chapter-ordinal">Third Chapter · Completed</div>
           <div class="chapter-name">Integrals</div>
           <div class="chapter-tagline">The Mathematics of Accumulation · On area, summation, and the fundamental theorem</div>
         </div>
@@ -586,19 +586,115 @@
         <div class="chapter-desc">
           The derivative asks what is happening at this exact instant. The integral asks what has accumulated across all the instants together. They are not separate tools — they are the same question asked from opposite directions. The <span class="hl">Fundamental Theorem of Calculus</span> is the statement of this symmetry: differentiation and integration are inverse operations, each undoing what the other does.
           <br><br>
-          Area under a curve. Total probability across a distribution. Cumulative change over time. These are all integrals — and the normal distribution, which appeared in Chapter I as a shape, becomes in Chapter III a question of area: what fraction of outcomes fall within one standard deviation? Two? The bell curve is not just a shape. It is a function to be integrated.
+          Area under a curve. Total probability across a distribution. Cumulative change over time. These are all integrals — and the normal distribution, which appeared in Chapter I as a shape, becomes in Chapter III a question of area: what fraction of outcomes fall within one standard deviation? Two? The bell curve is not just a shape. It is a function to be integrated. And at the edge of integration lives chaos — where a simple deterministic rule, iterated, produces futures that cannot be read.
         </div>
+
         <div class="concept-line">
-          <span class="concept-tag dormant">Riemann sums</span>
-          <span class="concept-tag dormant">definite integrals</span>
-          <span class="concept-tag dormant">fundamental theorem</span>
-          <span class="concept-tag dormant">area under distributions</span>
-          <span class="concept-tag dormant">SymPy integration</span>
+          <span class="concept-tag" onclick="togglePanel(event,'riemann')">Riemann sums</span>
+          <span class="concept-tag" onclick="togglePanel(event,'definite')">definite integrals</span>
+          <span class="concept-tag" onclick="togglePanel(event,'ftc')">fundamental theorem</span>
+          <span class="concept-tag" onclick="togglePanel(event,'pdfcdf')">PDF &amp; CDF</span>
+          <span class="concept-tag" onclick="togglePanel(event,'chaos')">chaos &amp; butterfly effect</span>
         </div>
+
+        <!-- RIEMANN SUMS -->
+        <div id="panel-riemann" class="concept-panel">
+          <div class="concept-panel-title">Riemann Sums</div>
+          <div class="concept-panel-body">
+            The traveler wanted to know the area beneath a curve — the total accumulation of something varying continuously. He did what anyone would do: he sliced the region into rectangles, computed each rectangle's area, and added them up. The rectangles were wrong. They were either too tall or too short at every point.<br><br>
+            So he made them thinner. The total improved. Thinner still — better again. He watched the sum settle, like sediment finding the bottom of still water. He never reached the curve exactly. But he saw where the sum was going — the value it approached without ever quite touching. <em>That limit is the integral.</em> Not an approximation of the area. The area itself, defined as what the approximation eternally approaches.
+          </div>
+          <div class="concept-panel-numpy">scipy.integrate.quad(f, a, b) &nbsp;·&nbsp; np.trapz(y, x) &nbsp;·&nbsp; Riemann manually: sum(f(x)*dx for x in partition)</div>
+          <div class="concept-panel-ds">In data science — numerical integration appears whenever a continuous probability distribution is evaluated. The probability that a value falls in an interval is the integral of the PDF over that interval.</div>
+        </div>
+
+        <!-- DEFINITE INTEGRALS -->
+        <div id="panel-definite" class="concept-panel">
+          <div class="concept-panel-title">Definite Integrals</div>
+          <div class="concept-panel-body">
+            A definite integral has two bounds: a starting point and an ending point. It asks how much has accumulated between them. The result is a single number — not a function, not a shape, but a quantity. The area between x=0 and x=3 under the curve y=x². The total probability between one and two standard deviations from the mean.<br><br>
+            The bounds matter precisely. Change them and the answer changes. The integral from a to b is not the same as the integral from b to a — it is its negative, because accumulation has a direction. This signed area is not a complication. <em>It is the full picture of what the function is doing</em> — growing here, shrinking there, the positive and negative contributions tallied honestly together.
+          </div>
+          <div class="concept-panel-numpy">scipy.integrate.quad(f, a, b) &nbsp;·&nbsp; returns (value, error_estimate) &nbsp;·&nbsp; scipy.integrate.dblquad for double integrals</div>
+          <div class="concept-panel-ds">In data science — the CDF is a definite integral of the PDF from −∞ to x. Every probability calculation from a continuous distribution is a definite integral, computed numerically by the statistics library.</div>
+        </div>
+
+        <!-- FUNDAMENTAL THEOREM -->
+        <div id="panel-ftc" class="concept-panel">
+          <div class="concept-panel-title">The Fundamental Theorem of Calculus</div>
+          <div class="concept-panel-body">
+            Two operations that look completely unrelated — one adds up infinitely many infinitely thin slices, one measures the slope at a single point — are inverse operations of each other. Integrate a function, then differentiate the result: you recover the original function. Differentiate, then integrate: same. They undo each other completely.<br><br>
+            This is not a coincidence to be verified by calculation. It is the deep symmetry that makes calculus one subject rather than two subjects with similar names. <em>The rate of accumulation at any point equals the function's value at that point.</em> How fast area is being added at x is exactly f(x). The theorem doesn't connect differentiation and integration — it reveals that they were always the same operation, seen from opposite sides of the same question.
+          </div>
+          <div class="concept-panel-numpy">from sympy import integrate, diff, symbols &nbsp;·&nbsp; x = symbols('x') &nbsp;·&nbsp; diff(integrate(f, x), x) == f &nbsp;·&nbsp; always true</div>
+          <div class="concept-panel-ds">In data science — the FTC is why the PDF and CDF are derivatives and integrals of each other. It is also why gradient descent works: the gradient is the derivative of the loss, and following it is accumulating steps toward the minimum.</div>
+        </div>
+
+        <!-- PDF & CDF -->
+        <div id="panel-pdfcdf" class="concept-panel">
+          <div class="concept-panel-title">PDF &amp; CDF</div>
+          <div class="concept-panel-body">
+            The PDF — Probability Density Function — describes how dense the probability is at each point. The bell curve is a PDF. It answers: how concentrated is the probability right here at x?<br><br>
+            The CDF — Cumulative Distribution Function — describes how much probability has accumulated up to x. It starts at 0, ends at 1, always increases. It answers: what fraction of outcomes fall at or below x?<br><br>
+            Snow accumulating on the ground. The total depth at time x is the CDF. The rate of snowfall at moment x is the PDF. Integrate the snowfall rate and you get the total depth. Differentiate the total depth and you get back the snowfall rate. <em>The Fundamental Theorem, made visible in weather.</em> These are not two different descriptions of a distribution. They are the same distribution, seen from accumulation and from rate simultaneously.
+          </div>
+          <div class="concept-panel-numpy">scipy.stats.norm.pdf(x) &nbsp;·&nbsp; scipy.stats.norm.cdf(x) &nbsp;·&nbsp; cdf is integral of pdf &nbsp;·&nbsp; pdf = derivative of cdf</div>
+          <div class="concept-panel-ds">In data science — the CDF is used for percentiles, p-values, and confidence intervals. P(a ≤ X ≤ b) = CDF(b) − CDF(a). Every hypothesis test is asking a question about area under a distribution.</div>
+        </div>
+
+        <!-- CHAOS & BUTTERFLY -->
+        <div id="panel-chaos" class="concept-panel">
+          <div class="concept-panel-title">Chaos &amp; the Butterfly Effect</div>
+          <div class="concept-panel-body">
+            Edward Lorenz was solving differential equations for weather prediction. He entered initial conditions rounded to three decimal places instead of six. The trajectory diverged completely. A difference of one part in a thousand, amplified by iteration, produced an entirely different future.<br><br>
+            The logistic map xₙ₊₁ = r·xₙ·(1−xₙ) shows the same structure at smaller scale. At low r, it settles to one stable value. As r grows, it bifurcates — oscillating between two values, then four, then eight. The doublings accelerate, then collapse into chaos. But inside the chaos, <em>pockets of order appear</em> — islands of period-3, period-5 cycles, then chaos again. The system is deterministic: given the exact starting point, you get the exact same path. But the exact starting point is never available. Every measurement has error. Every error, iterated, becomes the difference between prediction and the unreadable future.
+          </div>
+          <div class="concept-panel-numpy">def logistic(r, x): return r * x * (1 - x) &nbsp;·&nbsp; scipy.integrate.solve_ivp() for Lorenz ODEs &nbsp;·&nbsp; small dt matters</div>
+          <div class="concept-panel-ds">In data science — chaos is why long-range prediction fails in complex systems. It is also why numerical integration step size matters: too large and the solver diverges from the true trajectory, amplifying error with every step.</div>
+        </div>
+
+        <!-- ARTIFACT BUTTONS -->
+        <div class="artifact-section">
+          <div class="artifact-section-label">Instruments Built · Third Chapter</div>
+          <div class="artifact-buttons">
+            <a href="artifacts/riemann_explorer.html" target="_blank" class="artifact-btn">
+              <div class="artifact-btn-glyph">◆ I</div>
+              <div class="artifact-btn-text">
+                <span class="artifact-btn-name">The Riemann Explorer</span>
+                <span class="artifact-btn-desc">Four functions, a slider for n rectangles (1→120), three methods: left, right, midpoint. Watch the Riemann sum column approach the exact integral as n grows. The error does not vanish gradually — it collapses.</span>
+              </div>
+              <div class="artifact-btn-arrow">→</div>
+            </a>
+            <a href="artifacts/logistic_map.html" target="_blank" class="artifact-btn">
+              <div class="artifact-btn-glyph">◆ II</div>
+              <div class="artifact-btn-text">
+                <span class="artifact-btn-name">The Logistic Map</span>
+                <span class="artifact-btn-desc">The full bifurcation diagram — pockets of order and pockets of chaos as r varies from 2.5 to 4. Click anywhere on the diagram to set r. The regime display shows whether you are in stability, period-doubling, or chaos. The islands of period-3 inside the chaos are visible if you look.</span>
+              </div>
+              <div class="artifact-btn-arrow">→</div>
+            </a>
+            <a href="artifacts/lorenz_attractor.html" target="_blank" class="artifact-btn">
+              <div class="artifact-btn-glyph">◆ III</div>
+              <div class="artifact-btn-text">
+                <span class="artifact-btn-name">The Lorenz Attractor</span>
+                <span class="artifact-btn-desc">The butterfly that never crosses itself, tracing the same shape forever without repeating. Four views: X-Y, X-Z, Y-Z, and a 3D orbit you can drag to rotate. Sliders for σ, ρ, β — change the parameters and watch the attractor reshape. The trajectory is colored by height so the two wings are distinct.</span>
+              </div>
+              <div class="artifact-btn-arrow">→</div>
+            </a>
+          </div>
+        </div>
+
+        <!-- HELD SPACE — CHAPTER III — FILLED -->
         <div class="held-space">
-          <div class="held-space-label">What accumulates here</div>
-          <div class="held-space-interior">This space will hold what arrives as the chapter is worked through — the moment a concept lands, the notation that finally made sense, the connection that arrived sideways.</div>
+          <div class="held-space-label">What arrived here · Third Chapter</div>
+          <div class="held-space-filled">
+            <span class="hs-date">25 April 2026</span>
+            <p>The Riemann sum arrived as a companion to the limit — the same patience, the same watching from a distance. The rectangles are never right. But they approach something. As n grows, the error column collapses, and what remains is not an approximation but the exact value — defined as the destination the sum was always traveling toward. <em>The same move as the derivative. The same intellectual gesture, pointed in the other direction.</em></p>
+            <p>The Fundamental Theorem landed not as a formula but as a revelation of symmetry. Two operations that look completely different — slicing and summing, measuring slope — are inverses. The snow image made it concrete: the CDF is total accumulated depth, the PDF is the snowfall rate. Differentiate one and you get the other. Integrate the other and you return to the first. Not two descriptions. The same function, seen from accumulation and from rate at the same time.</p>
+            <p>And then chaos. The logistic map bifurcates — order into period-2, period-4, into the unreadable. But inside the chaos, islands of order persist. The Lorenz attractor traces its butterfly forever, never crossing itself, never repeating. Deterministic but unreadable. <em>The future is written in the equations. It cannot be read from the initial conditions.</em> This is what numerical integration revealed — not just equations solved, but a universe where precision and prediction come apart.</p>
+          </div>
         </div>
+
       </div>
     </div>
 
@@ -619,8 +715,8 @@
       It is what the function generates at each moment.<br>
       The limit is not an approximation.<br>
       It is the destination the measurement was always traveling toward.<br><br>
-      <em>Two chapters completed. One room still waiting.</em><br>
-      <em>The pilgrim returned. The river looked the same.</em>
+      <em>Three chapters. Three rooms. One manuscript — complete.</em><br>
+      <em>The pilgrim returned. The river looked the same. The butterfly had already left.</em>
     </p>
   </div>
 
