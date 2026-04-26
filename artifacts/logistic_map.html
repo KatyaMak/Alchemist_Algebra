@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Logistic Map · The Alchemist's Algebra</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #c8a96e;
+    --midnight: #0d0a05;
+    --parchment: #f2e8d0;
+    --gold: #d4a843;
+    --gold-light: #e8c96a;
+    --teal: #7ecfb3;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--midnight);
+    color: var(--parchment);
+    font-family: 'Amiri', serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+  }
+
+  .mudejar-bg {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0.05;
+    background-image: repeating-conic-gradient(from 0deg at 50% 50%, var(--gold) 0deg 15deg, transparent 15deg 30deg, var(--sand) 30deg 45deg, transparent 45deg 60deg);
+    background-size: 80px 80px;
+    z-index: 0; pointer-events: none;
+  }
+
+  .content { position: relative; z-index: 1; width: 100%; max-width: 820px; }
+
+  .header { text-align: center; margin-bottom: 36px; }
+  .header .nav-back {
+    font-family: 'Amiri', serif; font-size: 0.7rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--sand); opacity: 0.5;
+    text-decoration: none; display: inline-block; margin-bottom: 16px;
+    transition: opacity 0.3s;
+  }
+  .header .nav-back:hover { opacity: 0.85; }
+  .header h1 {
+    font-family: 'Cinzel Decorative', serif; font-size: 1.5rem;
+    color: var(--gold); margin-bottom: 8px;
+    text-shadow: 0 0 30px rgba(212,168,67,0.3);
+  }
+  .header p {
+    font-family: 'IM Fell English', serif; font-style: italic;
+    font-size: 0.95rem; color: var(--sand); opacity: 0.8;
+  }
+
+  .divider { display: flex; align-items: center; gap: 16px; margin: 24px 0; }
+  .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+  .divider-diamond { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+
+  .canvas-wrap {
+    border: 1px solid rgba(212,168,67,0.2);
+    background: rgba(0,0,0,0.5);
+    padding: 4px;
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    cursor: crosshair;
+  }
+
+  .controls {
+    display: flex; flex-direction: column; gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .control-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+
+  .control-label {
+    font-family: 'Amiri', serif; font-size: 0.75rem;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--sand); opacity: 0.7; min-width: 160px;
+  }
+
+  input[type=range] {
+    flex: 1; min-width: 160px; height: 3px;
+    -webkit-appearance: none; appearance: none;
+    background: rgba(212,168,67,0.15); outline: none;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px;
+    background: var(--gold); cursor: pointer;
+    transform: rotate(45deg); border-radius: 0;
+    box-shadow: 0 0 8px rgba(212,168,67,0.5);
+  }
+
+  .control-value {
+    font-family: 'Cinzel Decorative', serif; font-size: 0.85rem;
+    color: var(--gold); min-width: 50px; text-align: right;
+  }
+
+  .state-display {
+    display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+
+  .state-box {
+    flex: 1; min-width: 140px;
+    border: 1px solid rgba(212,168,67,0.15);
+    padding: 10px 14px;
+    background: rgba(212,168,67,0.02);
+  }
+
+  .state-label {
+    font-family: 'Amiri', serif; font-size: 0.65rem;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--gold); opacity: 0.5; margin-bottom: 5px;
+  }
+
+  .state-value {
+    font-family: 'Cinzel Decorative', serif; font-size: 0.9rem;
+    color: var(--gold-light);
+  }
+
+  .regime-tag {
+    display: inline-block;
+    font-family: 'Amiri', serif; font-size: 0.72rem;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 3px 10px;
+    border: 1px solid;
+    margin-top: 6px;
+  }
+
+  .regime-stable { color: var(--teal); border-color: rgba(126,207,179,0.4); }
+  .regime-period { color: var(--gold); border-color: rgba(212,168,67,0.4); }
+  .regime-chaos { color: #e06060; border-color: rgba(224,96,96,0.4); }
+
+  .insight {
+    border-left: 2px solid rgba(212,168,67,0.25);
+    padding: 18px 22px;
+    background: rgba(212,168,67,0.02);
+    margin-top: 8px;
+  }
+
+  .insight p {
+    font-family: 'IM Fell English', serif; font-style: italic;
+    font-size: 0.92rem; line-height: 1.75; color: var(--parchment);
+    opacity: 0.82; margin-bottom: 0.8em;
+  }
+
+  .insight p:last-child { margin-bottom: 0; }
+  .insight em { color: var(--gold-light); }
+
+  .render-btn {
+    font-family: 'Amiri', serif; font-size: 0.8rem;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid rgba(212,168,67,0.4);
+    padding: 8px 20px; cursor: pointer; background: transparent;
+    transition: all 0.3s; margin-left: 12px;
+  }
+  .render-btn:hover { background: rgba(212,168,67,0.08); border-color: rgba(212,168,67,0.7); }
+
+  .hint {
+    font-family: 'IM Fell English', serif; font-style: italic;
+    font-size: 0.78rem; color: var(--sand); opacity: 0.45;
+    text-align: center; margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="mudejar-bg"></div>
+<div class="content">
+
+  <div class="header">
+    <a href="../book_of_change.html" class="nav-back">← The Book of Change</a>
+    <h1>The Logistic Map</h1>
+    <p>Pockets of order and pockets of chaos — as r grows, a simple rule bifurcates into the infinite</p>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+  <div class="controls">
+    <div class="control-row">
+      <div class="control-label">r range: max</div>
+      <input type="range" id="rMaxSlider" min="2.5" max="4.0" step="0.01" value="4.0" oninput="updateRMax(this.value)">
+      <div class="control-value" id="rMaxVal">4.00</div>
+      <button class="render-btn" onclick="renderDiagram()">Render</button>
+    </div>
+    <div class="control-row">
+      <div class="control-label">r (single orbit)</div>
+      <input type="range" id="rSlider" min="2.5" max="4.0" step="0.001" value="3.2" oninput="updateR(this.value)">
+      <div class="control-value" id="rVal">3.200</div>
+    </div>
+    <div class="control-row">
+      <div class="control-label">Iterations (burn-in)</div>
+      <input type="range" id="burnSlider" min="50" max="500" step="50" value="200" oninput="updateBurn(this.value)">
+      <div class="control-value" id="burnVal">200</div>
+    </div>
+  </div>
+
+  <div class="state-display">
+    <div class="state-box">
+      <div class="state-label">Current r</div>
+      <div class="state-value" id="rDisplay">3.200</div>
+    </div>
+    <div class="state-box">
+      <div class="state-label">Regime</div>
+      <div class="state-value" id="regimeDisplay">
+        <span class="regime-tag regime-period">Period-2</span>
+      </div>
+    </div>
+    <div class="state-box">
+      <div class="state-label">Attractor Points</div>
+      <div class="state-value" id="attractorDisplay">2</div>
+    </div>
+    <div class="state-box">
+      <div class="state-label">x₀ = 0.5 → after 200 iter</div>
+      <div class="state-value" id="finalDisplay">—</div>
+    </div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="bifCanvas"></canvas>
+  </div>
+  <div class="hint">Click anywhere on the diagram to set r — the vertical line marks your current position</div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+  <div class="insight">
+    <p>The logistic map xₙ₊₁ = r·xₙ·(1−xₙ) is a population model. At low r, the population settles to one stable value. As r increases, it bifurcates — the population oscillates between two values, then four, then eight. <em>The doublings accelerate, then collapse into chaos.</em></p>
+    <p>But inside the chaos, pockets of order appear — islands of period-3, period-5, period-7 cycles, then chaos again. This is the structure of complexity: not random, not predictable, but governed by a deterministic rule that the future cannot be read from. <em>The butterfly effect was first seen not in a storm, but in a diagram like this one.</em></p>
+  </div>
+
+</div>
+
+<script>
+  const canvas = document.getElementById('bifCanvas');
+  const ctx = canvas.getContext('2d');
+
+  let rMax = 4.0;
+  let rCurrent = 3.2;
+  let burnIn = 200;
+  const plotPoints = 150;
+  const rMin = 2.5;
+
+  function updateRMax(v) {
+    rMax = parseFloat(v);
+    document.getElementById('rMaxVal').textContent = rMax.toFixed(2);
+  }
+
+  function updateR(v) {
+    rCurrent = parseFloat(v);
+    document.getElementById('rVal').textContent = rCurrent.toFixed(3);
+    document.getElementById('rDisplay').textContent = rCurrent.toFixed(3);
+    updateOrbit();
+    drawMarker();
+  }
+
+  function updateBurn(v) {
+    burnIn = parseInt(v);
+    document.getElementById('burnVal').textContent = burnIn;
+  }
+
+  function logisticOrbit(r, x0, iters, collect) {
+    let x = x0;
+    for (let i = 0; i < iters; i++) x = r * x * (1 - x);
+    const result = [];
+    for (let i = 0; i < collect; i++) {
+      x = r * x * (1 - x);
+      result.push(x);
+    }
+    return result;
+  }
+
+  function detectAttractors(orbit) {
+    const tol = 0.001;
+    const unique = [];
+    for (const v of orbit) {
+      if (!unique.some(u => Math.abs(u - v) < tol)) unique.push(v);
+    }
+    return unique.length;
+  }
+
+  function detectRegime(r) {
+    if (r < 3.0) return { label: 'Stable', cls: 'regime-stable' };
+    if (r < 3.449) return { label: 'Period-2', cls: 'regime-period' };
+    if (r < 3.544) return { label: 'Period-4', cls: 'regime-period' };
+    if (r < 3.5644) return { label: 'Period-8', cls: 'regime-period' };
+    if (r < 3.5688) return { label: 'Period-16', cls: 'regime-period' };
+    if (r >= 3.8284 && r <= 3.8571) return { label: 'Period-3 island', cls: 'regime-period' };
+    return { label: 'Chaos', cls: 'regime-chaos' };
+  }
+
+  function updateOrbit() {
+    const orbit = logisticOrbit(rCurrent, 0.5, burnIn, plotPoints);
+    const n = detectAttractors(orbit);
+    const regime = detectRegime(rCurrent);
+
+    document.getElementById('regimeDisplay').innerHTML = `<span class="regime-tag ${regime.cls}">${regime.label}</span>`;
+    document.getElementById('attractorDisplay').textContent = n > 20 ? '∞ (chaos)' : n;
+    document.getElementById('finalDisplay').textContent = orbit[orbit.length - 1].toFixed(5);
+  }
+
+  let diagramImageData = null;
+
+  function renderDiagram() {
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.fillStyle = 'rgba(8,6,3,1)';
+    ctx.fillRect(0, 0, W, H);
+
+    const rSteps = W * 2;
+    const plotIter = plotPoints;
+
+    for (let i = 0; i <= rSteps; i++) {
+      const r = rMin + (rMax - rMin) * i / rSteps;
+      const px = Math.round(i / rSteps * W);
+
+      let x = 0.5;
+      for (let j = 0; j < burnIn; j++) x = r * x * (1 - x);
+
+      for (let j = 0; j < plotIter; j++) {
+        x = r * x * (1 - x);
+        const py = Math.round((1 - x) * H);
+
+        // Color by r position — gold in order, blue-teal in chaos
+        const t = (r - rMin) / (rMax - rMin);
+        const red   = Math.round(40 + t * 170);
+        const green = Math.round(100 + t * 60);
+        const blue  = Math.round(180 - t * 80);
+        ctx.fillStyle = `rgba(${red},${green},${blue},0.35)`;
+        ctx.fillRect(px, py, 1, 1);
+      }
+    }
+
+    diagramImageData = ctx.getImageData(0, 0, W, H);
+    drawMarker();
+  }
+
+  function drawMarker() {
+    if (diagramImageData) {
+      ctx.putImageData(diagramImageData, 0, 0);
+    }
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const markerX = Math.round((rCurrent - rMin) / (rMax - rMin) * W);
+
+    ctx.strokeStyle = 'rgba(232,201,106,0.85)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(markerX, 0);
+    ctx.lineTo(markerX, H);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // r label
+    ctx.fillStyle = 'rgba(232,201,106,0.9)';
+    ctx.font = '12px Amiri, serif';
+    ctx.textAlign = markerX > W * 0.7 ? 'right' : 'left';
+    ctx.fillText(`r = ${rCurrent.toFixed(3)}`, markerX + (markerX > W * 0.7 ? -6 : 6), 20);
+
+    // Axis labels
+    ctx.fillStyle = 'rgba(200,169,110,0.4)';
+    ctx.font = '11px Amiri, serif';
+    ctx.textAlign = 'center';
+    const steps = 6;
+    for (let i = 0; i <= steps; i++) {
+      const r = rMin + (rMax - rMin) * i / steps;
+      const px = rMin === rMax ? W/2 : (r - rMin) / (rMax - rMin) * W;
+      ctx.fillText(r.toFixed(2), px, H - 4);
+    }
+
+    ctx.textAlign = 'left';
+    ctx.fillText('0', 4, H - 18);
+    ctx.fillText('1', 4, 14);
+    ctx.fillText('x', 4, H / 2);
+  }
+
+  canvas.addEventListener('click', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const relX = (e.clientX - rect.left) / rect.width;
+    const r = rMin + (rMax - rMin) * relX;
+    const clamped = Math.max(rMin, Math.min(rMax, r));
+    rCurrent = clamped;
+    document.getElementById('rSlider').value = clamped;
+    document.getElementById('rVal').textContent = clamped.toFixed(3);
+    document.getElementById('rDisplay').textContent = clamped.toFixed(3);
+    updateOrbit();
+    drawMarker();
+  });
+
+  function resizeCanvas() {
+    const wrap = canvas.parentElement;
+    canvas.width = wrap.clientWidth - 8;
+    canvas.height = Math.round(canvas.width * 0.52);
+    canvas.style.height = canvas.height + 'px';
+    renderDiagram();
+  }
+
+  window.addEventListener('resize', () => {
+    resizeCanvas();
+  });
+
+  resizeCanvas();
+  updateOrbit();
+</script>
+</body>
+</html>

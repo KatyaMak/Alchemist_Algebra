@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Riemann Explorer · The Alchemist's Algebra</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #c8a96e;
+    --midnight: #0d0a05;
+    --parchment: #f2e8d0;
+    --gold: #d4a843;
+    --gold-light: #e8c96a;
+    --teal: #7ecfb3;
+    --terracotta: #c0694a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--midnight);
+    color: var(--parchment);
+    font-family: 'Amiri', serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+  }
+
+  .mudejar-bg {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0.05;
+    background-image: repeating-conic-gradient(from 0deg at 50% 50%, var(--gold) 0deg 15deg, transparent 15deg 30deg, var(--sand) 30deg 45deg, transparent 45deg 60deg);
+    background-size: 80px 80px;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .content { position: relative; z-index: 1; width: 100%; max-width: 780px; }
+
+  .header { text-align: center; margin-bottom: 36px; }
+  .header .nav-back {
+    font-family: 'Amiri', serif; font-size: 0.7rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--sand); opacity: 0.5;
+    text-decoration: none; display: inline-block; margin-bottom: 16px;
+    transition: opacity 0.3s;
+  }
+  .header .nav-back:hover { opacity: 0.85; }
+  .header h1 {
+    font-family: 'Cinzel Decorative', serif; font-size: 1.5rem;
+    color: var(--gold); margin-bottom: 8px;
+    text-shadow: 0 0 30px rgba(212,168,67,0.3);
+  }
+  .header p {
+    font-family: 'IM Fell English', serif; font-style: italic;
+    font-size: 0.95rem; color: var(--sand); opacity: 0.8;
+  }
+
+  .divider {
+    display: flex; align-items: center; gap: 16px; margin: 24px 0;
+  }
+  .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+  .divider-diamond { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+
+  /* Canvas */
+  .canvas-wrap {
+    border: 1px solid rgba(212,168,67,0.2);
+    background: rgba(212,168,67,0.02);
+    padding: 20px;
+    position: relative;
+    margin-bottom: 24px;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 340px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(212,168,67,0.1);
+  }
+
+  /* Stats row */
+  .stats {
+    display: flex; gap: 24px; margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    flex: 1; min-width: 140px;
+    border: 1px solid rgba(212,168,67,0.15);
+    padding: 12px 16px;
+    background: rgba(212,168,67,0.02);
+  }
+
+  .stat-label {
+    font-family: 'Amiri', serif; font-size: 0.65rem;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold); opacity: 0.5; margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-family: 'Cinzel Decorative', serif; font-size: 1.1rem;
+    color: var(--gold-light);
+  }
+
+  /* Controls */
+  .controls {
+    display: flex; flex-direction: column; gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  .control-row {
+    display: flex; align-items: center; gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .control-label {
+    font-family: 'Amiri', serif; font-size: 0.75rem;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--sand); opacity: 0.7;
+    min-width: 160px;
+  }
+
+  input[type=range] {
+    flex: 1; min-width: 160px; height: 3px;
+    -webkit-appearance: none; appearance: none;
+    background: rgba(212,168,67,0.15);
+    outline: none; border-radius: 0;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px;
+    background: var(--gold); cursor: pointer;
+    transform: rotate(45deg);
+    border-radius: 0;
+    box-shadow: 0 0 8px rgba(212,168,67,0.5);
+  }
+
+  .control-value {
+    font-family: 'Cinzel Decorative', serif; font-size: 0.85rem;
+    color: var(--gold); min-width: 50px; text-align: right;
+  }
+
+  /* Function selector */
+  .fn-selector {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+
+  .fn-btn {
+    font-family: 'Amiri', serif; font-size: 0.75rem;
+    letter-spacing: 0.1em; color: var(--sand);
+    border: 1px solid rgba(200,169,110,0.25);
+    padding: 6px 14px; cursor: pointer;
+    background: transparent; transition: all 0.3s;
+  }
+
+  .fn-btn:hover { color: var(--gold-light); border-color: rgba(212,168,67,0.5); background: rgba(212,168,67,0.05); }
+  .fn-btn.active { color: var(--gold); border-color: rgba(212,168,67,0.7); background: rgba(212,168,67,0.08); }
+
+  /* Insight block */
+  .insight {
+    border-left: 2px solid rgba(212,168,67,0.25);
+    padding: 18px 22px;
+    background: rgba(212,168,67,0.02);
+    margin-top: 8px;
+  }
+
+  .insight p {
+    font-family: 'IM Fell English', serif; font-style: italic;
+    font-size: 0.92rem; line-height: 1.75; color: var(--parchment);
+    opacity: 0.82;
+  }
+
+  .insight em { color: var(--gold-light); font-style: italic; }
+</style>
+</head>
+<body>
+<div class="mudejar-bg"></div>
+<div class="content">
+
+  <div class="header">
+    <a href="../book_of_change.html" class="nav-back">← The Book of Change</a>
+    <h1>The Riemann Explorer</h1>
+    <p>Slicing the area under a curve into rectangles — watching them become the truth as they grow infinitely thin</p>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+  <!-- Function selector -->
+  <div class="controls">
+    <div class="control-row">
+      <div class="control-label">Function</div>
+      <div class="fn-selector">
+        <button class="fn-btn active" onclick="setFn('sin')">sin(x)</button>
+        <button class="fn-btn" onclick="setFn('x2')">x²</button>
+        <button class="fn-btn" onclick="setFn('x3')">x³ − 2x</button>
+        <button class="fn-btn" onclick="setFn('exp')">e^(−x²)</button>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">Rectangles (n)</div>
+      <input type="range" id="nSlider" min="1" max="120" value="6" oninput="updateN(this.value)">
+      <div class="control-value" id="nVal">6</div>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">Method</div>
+      <div class="fn-selector">
+        <button class="fn-btn active" onclick="setMethod('left')">Left</button>
+        <button class="fn-btn" onclick="setMethod('right')">Right</button>
+        <button class="fn-btn" onclick="setMethod('mid')">Midpoint</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas-wrap">
+    <canvas id="canvas"></canvas>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Riemann Sum</div>
+        <div class="stat-value" id="riemannVal">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Exact Integral</div>
+        <div class="stat-value" id="exactVal">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Error</div>
+        <div class="stat-value" id="errorVal">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Rectangles</div>
+        <div class="stat-value" id="nDisplay">6</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+  <div class="insight">
+    <p>The traveler wanted to know the speed of the river at a single stone. He moved his measuring sticks closer and closer together, watching the number settle — seeing the destination without ever arriving at it. <em>Riemann did the same thing with area.</em> The rectangles are not wrong. They are right in a limit. As n → ∞, the approximation becomes the exact truth — not by accident, but because that is the only value the sum can approach.</p>
+  </div>
+
+</div>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  let currentFn = 'sin';
+  let currentMethod = 'left';
+  let n = 6;
+
+  const functions = {
+    sin: {
+      f: x => Math.sin(x),
+      exact: (a, b) => -Math.cos(b) + Math.cos(a),
+      a: 0, b: Math.PI,
+      label: 'sin(x) on [0, π]'
+    },
+    x2: {
+      f: x => x * x,
+      exact: (a, b) => (b**3 - a**3) / 3,
+      a: 0, b: 3,
+      label: 'x² on [0, 3]'
+    },
+    x3: {
+      f: x => x**3 - 2*x,
+      exact: (a, b) => (b**4/4 - b**2) - (a**4/4 - a**2),
+      a: -1.5, b: 2.5,
+      label: 'x³ − 2x on [−1.5, 2.5]'
+    },
+    exp: {
+      f: x => Math.exp(-x*x),
+      exact: () => Math.sqrt(Math.PI),
+      a: -3, b: 3,
+      label: 'e^(−x²) on [−3, 3]'
+    }
+  };
+
+  function setFn(name) {
+    currentFn = name;
+    document.querySelectorAll('.fn-selector').forEach((sel, i) => {
+      if (i === 0) sel.querySelectorAll('.fn-btn').forEach(b => b.classList.toggle('active', b.onclick.toString().includes(name)));
+    });
+    draw();
+  }
+
+  function setMethod(m) {
+    currentMethod = m;
+    document.querySelectorAll('.fn-selector')[1].querySelectorAll('.fn-btn')
+      .forEach(b => b.classList.toggle('active', b.onclick.toString().includes(m)));
+    draw();
+  }
+
+  function updateN(val) {
+    n = parseInt(val);
+    document.getElementById('nVal').textContent = n;
+    document.getElementById('nDisplay').textContent = n;
+    draw();
+  }
+
+  function draw() {
+    const fn = functions[currentFn];
+    const W = canvas.width;
+    const H = canvas.height;
+    const { f, exact, a, b } = fn;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Find value range
+    const samples = 300;
+    let yMin = Infinity, yMax = -Infinity;
+    for (let i = 0; i <= samples; i++) {
+      const x = a + (b - a) * i / samples;
+      const y = f(x);
+      if (y < yMin) yMin = y;
+      if (y > yMax) yMax = y;
+    }
+
+    // Add padding
+    const yPad = (yMax - yMin) * 0.18;
+    yMin -= yPad; yMax += yPad;
+    if (yMin > 0) yMin = -yPad;
+
+    const pad = { left: 48, right: 20, top: 20, bottom: 36 };
+    const plotW = W - pad.left - pad.right;
+    const plotH = H - pad.top - pad.bottom;
+
+    const toX = x => pad.left + (x - a) / (b - a) * plotW;
+    const toY = y => pad.top + (1 - (y - yMin) / (yMax - yMin)) * plotH;
+
+    // Grid
+    ctx.strokeStyle = 'rgba(212,168,67,0.07)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 5; i++) {
+      const gy = pad.top + plotH * i / 5;
+      ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(pad.left + plotW, gy); ctx.stroke();
+    }
+    for (let i = 0; i <= 6; i++) {
+      const gx = pad.left + plotW * i / 6;
+      ctx.beginPath(); ctx.moveTo(gx, pad.top); ctx.lineTo(gx, pad.top + plotH); ctx.stroke();
+    }
+
+    // Axes
+    const zeroY = toY(0);
+    ctx.strokeStyle = 'rgba(212,168,67,0.35)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.left, zeroY); ctx.lineTo(pad.left + plotW, zeroY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, pad.top + plotH); ctx.stroke();
+
+    // Rectangles
+    const dx = (b - a) / n;
+    let riemannSum = 0;
+
+    for (let i = 0; i < n; i++) {
+      const xLeft = a + i * dx;
+      const xRight = xLeft + dx;
+      let xSample;
+      if (currentMethod === 'left') xSample = xLeft;
+      else if (currentMethod === 'right') xSample = xRight;
+      else xSample = (xLeft + xRight) / 2;
+
+      const fVal = f(xSample);
+      riemannSum += fVal * dx;
+
+      const rx = toX(xLeft);
+      const rw = toX(xRight) - toX(xLeft);
+      const ry = fVal >= 0 ? toY(fVal) : zeroY;
+      const rh = Math.abs(toY(fVal) - zeroY);
+
+      // Fill
+      ctx.fillStyle = fVal >= 0
+        ? 'rgba(212,168,67,0.18)'
+        : 'rgba(192,105,74,0.18)';
+      ctx.fillRect(rx, ry, rw, rh);
+
+      // Border
+      ctx.strokeStyle = fVal >= 0
+        ? 'rgba(212,168,67,0.6)'
+        : 'rgba(192,105,74,0.6)';
+      ctx.lineWidth = 0.8;
+      ctx.strokeRect(rx, ry, rw, rh);
+    }
+
+    // Smooth curve
+    ctx.beginPath();
+    ctx.strokeStyle = '#e8c96a';
+    ctx.lineWidth = 2.2;
+    ctx.shadowColor = 'rgba(232,201,106,0.5)';
+    ctx.shadowBlur = 6;
+    for (let i = 0; i <= samples; i++) {
+      const x = a + (b - a) * i / samples;
+      const y = f(x);
+      const px = toX(x), py = toY(y);
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Axis labels
+    ctx.fillStyle = 'rgba(200,169,110,0.5)';
+    ctx.font = '11px Amiri, serif';
+    ctx.textAlign = 'center';
+    const xTickCount = 5;
+    for (let i = 0; i <= xTickCount; i++) {
+      const x = a + (b - a) * i / xTickCount;
+      const px = toX(x);
+      ctx.fillText(x.toFixed(1), px, pad.top + plotH + 18);
+    }
+
+    // Stats
+    const exactArea = exact(a, b);
+    const error = Math.abs(riemannSum - exactArea);
+    const errorPct = Math.abs(error / exactArea * 100);
+
+    document.getElementById('riemannVal').textContent = riemannSum.toFixed(5);
+    document.getElementById('exactVal').textContent = isFinite(exactArea) ? exactArea.toFixed(5) : '√π ≈ 1.77245';
+    document.getElementById('errorVal').textContent = error.toFixed(5) + (isFinite(exactArea) ? ` (${errorPct.toFixed(2)}%)` : '');
+  }
+
+  function resizeCanvas() {
+    const wrap = canvas.parentElement;
+    canvas.width = wrap.clientWidth - 40;
+    canvas.height = 340;
+    draw();
+  }
+
+  // Initialize function button listeners properly
+  document.querySelectorAll('.fn-selector')[0].querySelectorAll('.fn-btn').forEach(b => {
+    b.addEventListener('click', function() {
+      document.querySelectorAll('.fn-selector')[0].querySelectorAll('.fn-btn').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.fn-selector')[1].querySelectorAll('.fn-btn').forEach(b => {
+    b.addEventListener('click', function() {
+      document.querySelectorAll('.fn-selector')[1].querySelectorAll('.fn-btn').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+</script>
+</body>
+</html>
