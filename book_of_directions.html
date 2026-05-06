@@ -164,6 +164,19 @@
   .closing p { font-family: 'IM Fell English', serif; font-style: italic; font-size: 1rem; color: var(--sand); opacity: 0.72; line-height: 1.85; max-width: 480px; margin: 0 auto; }
 
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Artifact buttons */
+  .artifact-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(212,168,67,0.1); }
+  .artifact-section-label { font-family: 'Amiri', serif; font-size: 0.68rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.5; margin-bottom: 16px; }
+  .artifact-buttons { display: flex; flex-direction: column; gap: 10px; }
+  .artifact-btn { display: flex; align-items: flex-start; gap: 16px; padding: 14px 18px; border: 1px solid rgba(212,168,67,0.22); background: rgba(212,168,67,0.02); text-decoration: none; transition: all 0.3s ease; }
+  .artifact-btn:hover { background: rgba(212,168,67,0.07); border-color: rgba(212,168,67,0.45); }
+  .artifact-btn-glyph { font-family: 'Cinzel Decorative', serif; font-size: 0.75rem; color: var(--gold); opacity: 0.55; flex-shrink: 0; margin-top: 2px; }
+  .artifact-btn-text { flex: 1; }
+  .artifact-btn-name { font-family: 'IM Fell English', serif; font-size: 0.97rem; color: var(--gold-light); margin-bottom: 4px; display: block; }
+  .artifact-btn-desc { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.85rem; color: var(--sand); opacity: 0.7; line-height: 1.55; }
+  .artifact-btn-arrow { font-family: 'Amiri', serif; font-size: 0.8rem; color: var(--gold); opacity: 0.4; flex-shrink: 0; margin-top: 2px; transition: opacity 0.3s ease; }
+  .artifact-btn:hover .artifact-btn-arrow { opacity: 0.8; }
 </style>
 </head>
 <body>
@@ -335,6 +348,21 @@
           <div class="concept-panel-ds">In data science — NumPy underlies pandas, scikit-learn, and every ML framework. Understanding array operations removes the abstraction layer between you and what the algorithms are doing.</div>
         </div>
 
+        <!-- ARTIFACT — CHAPTER I -->
+        <div class="artifact-section">
+          <div class="artifact-section-label">Instrument Built · First Chapter</div>
+          <div class="artifact-buttons">
+            <a href="artifacts/vector_dot_product.html" target="_blank" class="artifact-btn">
+              <div class="artifact-btn-glyph">◆ I</div>
+              <div class="artifact-btn-text">
+                <span class="artifact-btn-name">Vector &amp; Dot Product Explorer</span>
+                <span class="artifact-btn-desc">Drag two arrowheads around the plane — dot product, angle, projection, and the Cauchy-Schwarz bar all update live. Watch the bar reach 100% when vectors align, drop to zero when perpendicular. Coordinates are shadows; the bar is the geometry refusing to be violated.</span>
+              </div>
+              <div class="artifact-btn-arrow">→</div>
+            </a>
+          </div>
+        </div>
+
         <!-- HELD SPACE — CHAPTER I — FILLED -->
         <div class="held-space">
           <div class="held-space-label">What arrived here · First Chapter</div>
@@ -429,6 +457,21 @@
           <div class="concept-panel-ds">In data science — Pandas is the entry point for almost every real dataset. Reading, cleaning, reshaping, and selecting data before it reaches the linear algebra layer that operates on it.</div>
         </div>
 
+        <!-- ARTIFACT — CHAPTER II -->
+        <div class="artifact-section">
+          <div class="artifact-section-label">Instrument Built · Second Chapter</div>
+          <div class="artifact-buttons">
+            <a href="artifacts/matrix_explorer.html" target="_blank" class="artifact-btn">
+              <div class="artifact-btn-glyph">◆ I</div>
+              <div class="artifact-btn-text">
+                <span class="artifact-btn-name">Matrix Transformation Explorer</span>
+                <span class="artifact-btn-desc">Enter any 2×2 matrix and watch the grid stretch, rotate, shear, or collapse. Side-by-side: original vs transformed. The inverse panel undoes the transformation completely — or shows "No inverse exists" when det=0. Use the Collapse preset to see a dimension destroyed in real time.</span>
+              </div>
+              <div class="artifact-btn-arrow">→</div>
+            </a>
+          </div>
+        </div>
+
         <!-- HELD SPACE — CHAPTER II — FILLED -->
         <div class="held-space">
           <div class="held-space-label">What arrived here · Second Chapter</div>
@@ -521,6 +564,21 @@
           </div>
           <div class="concept-panel-numpy">import matplotlib.pyplot as plt &nbsp;·&nbsp; plt.scatter(x, y) &nbsp;·&nbsp; plt.plot(x, y_pred, color='gold') &nbsp;·&nbsp; plt.show()</div>
           <div class="concept-panel-ds">In data science — visualization is how you catch what the numbers alone won't tell you. Heteroscedasticity, outliers, nonlinearity — these show up in plots before they show up in statistics.</div>
+        </div>
+
+        <!-- ARTIFACT — CHAPTER III -->
+        <div class="artifact-section">
+          <div class="artifact-section-label">Instrument Built · Third Chapter</div>
+          <div class="artifact-buttons">
+            <a href="artifacts/ols_explorer.html" target="_blank" class="artifact-btn">
+              <div class="artifact-btn-glyph">◆ I</div>
+              <div class="artifact-btn-text">
+                <span class="artifact-btn-name">OLS Regression Explorer</span>
+                <span class="artifact-btn-desc">Click to place points, drag to move them, right-click to remove. The best-fit line updates instantly. Residuals shown as dashed vertical drops. The normal equations panel shows XᵀX and Xᵀy building from your data — the transpose doing its work visibly. Watch R² rise as points align and fall as they scatter.</span>
+              </div>
+              <div class="artifact-btn-arrow">→</div>
+            </a>
+          </div>
         </div>
 
         <!-- HELD SPACE — CHAPTER III — FILLED -->
