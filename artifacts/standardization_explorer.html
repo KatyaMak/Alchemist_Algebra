@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Standardization Explorer · The Alchemist's Algebra</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #c8a96e;
+    --midnight: #0d0a05;
+    --parchment: #f2e8d0;
+    --gold: #d4a843;
+    --gold-light: #e8c96a;
+    --teal: #7ecfb3;
+    --terracotta: #c0694a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--midnight);
+    color: var(--parchment);
+    font-family: 'Amiri', serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+  }
+
+  .mudejar-bg {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0.05;
+    background-image: repeating-conic-gradient(from 0deg at 50% 50%, var(--gold) 0deg 15deg, transparent 15deg 30deg, var(--sand) 30deg 45deg, transparent 45deg 60deg);
+    background-size: 80px 80px;
+    z-index: 0; pointer-events: none;
+  }
+
+  .content { position: relative; z-index: 1; width: 100%; max-width: 780px; }
+
+  .header { text-align: center; margin-bottom: 36px; }
+  .header h1 {
+    font-family: 'Cinzel Decorative', serif; font-size: 1.5rem;
+    color: var(--gold); margin-bottom: 8px;
+    text-shadow: 0 0 30px rgba(212,168,67,0.3);
+  }
+  .header p {
+    font-family: 'IM Fell English', serif; font-style: italic;
+    font-size: 0.95rem; color: var(--sand); opacity: 0.8;
+  }
+
+  .divider {
+    display: flex; align-items: center; gap: 16px; margin: 24px 0;
+  }
+  .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+  .divider-diamond { width: 8px; height: 8px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+
+  .intro {
+    font-family: 'IM Fell English', serif; font-size: 1rem;
+    color: var(--parchment); opacity: 0.85; line-height: 1.8;
+    text-align: center; margin-bottom: 32px;
+  }
+
+  .panel {
+    background: rgba(212,168,67,0.04);
+    border: 1px solid rgba(212,168,67,0.15);
+    border-radius: 4px; padding: 28px; margin-bottom: 24px;
+  }
+
+  .panel-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 0.75rem; letter-spacing: 0.15em;
+    color: var(--gold); text-transform: uppercase; margin-bottom: 20px;
+  }
+
+  .scenario-selector {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .scenario-btn {
+    font-family: 'Amiri', serif; font-size: 0.85rem;
+    color: var(--sand); background: transparent;
+    border: 1px solid rgba(212,168,67,0.25);
+    border-radius: 3px; padding: 8px 14px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .scenario-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .scenario-btn.active {
+    background: rgba(212,168,67,0.12);
+    border-color: var(--gold); color: var(--gold);
+  }
+
+  .slider-row {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 18px;
+  }
+  .slider-label {
+    font-family: 'Amiri', serif; font-size: 0.9rem;
+    color: var(--sand); min-width: 180px;
+  }
+  .slider-label span { font-family: 'IM Fell English', serif; font-style: italic; color: var(--gold); }
+  input[type="range"] {
+    flex: 1; -webkit-appearance: none; appearance: none;
+    height: 3px; background: rgba(212,168,67,0.2); border-radius: 2px;
+    outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    background: var(--gold); border-radius: 50%; cursor: pointer;
+    box-shadow: 0 0 8px rgba(212,168,67,0.4);
+  }
+  .slider-value {
+    font-family: 'Amiri', serif; font-size: 0.9rem;
+    color: var(--gold-light); min-width: 80px; text-align: right;
+  }
+
+  .comparison {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 8px;
+  }
+  .compare-card {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(212,168,67,0.1);
+    border-radius: 4px; padding: 20px;
+  }
+  .compare-card.raw { border-color: rgba(192,105,74,0.3); }
+  .compare-card.standardized { border-color: rgba(126,207,179,0.3); }
+
+  .compare-title {
+    font-family: 'Cinzel Decorative', serif; font-size: 0.65rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .compare-card.raw .compare-title { color: var(--terracotta); }
+  .compare-card.standardized .compare-title { color: var(--teal); }
+
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 10px; padding-bottom: 10px;
+    border-bottom: 1px solid rgba(212,168,67,0.06);
+  }
+  .stat-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .stat-name {
+    font-family: 'Amiri', serif; font-size: 0.82rem;
+    color: var(--sand); opacity: 0.7;
+  }
+  .stat-val {
+    font-family: 'IM Fell English', serif; font-size: 1rem;
+    color: var(--parchment);
+  }
+  .stat-val.highlight { color: var(--gold); font-size: 1.1rem; }
+
+  canvas {
+    width: 100%; margin-top: 20px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(212,168,67,0.08);
+    border-radius: 4px; display: block;
+  }
+
+  .interpretation {
+    font-family: 'IM Fell English', serif; font-style: italic;
+    font-size: 0.9rem; color: var(--sand); opacity: 0.85;
+    line-height: 1.7; text-align: center; margin-top: 20px;
+  }
+
+  .key-insight {
+    background: rgba(212,168,67,0.06);
+    border: 1px solid rgba(212,168,67,0.2);
+    border-radius: 4px; padding: 16px 20px;
+    margin-top: 20px; text-align: center;
+    font-family: 'IM Fell English', serif; font-size: 0.9rem;
+    color: var(--gold-light); line-height: 1.7;
+  }
+
+  .note {
+    font-family: 'Amiri', serif; font-size: 0.82rem;
+    color: var(--sand); opacity: 0.55; line-height: 1.7;
+    text-align: center; margin-top: 28px; font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="mudejar-bg"></div>
+<div class="content">
+
+  <div class="header">
+    <h1>The Standardization Explorer</h1>
+    <p>The same relationship — made comparable</p>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+  <p class="intro">
+    A coefficient's size depends on the scale of its variable. 
+    Standardization (z-scoring) removes the scale, 
+    allowing coefficients to be compared directly: 
+    which variable matters more?
+  </p>
+
+  <div class="panel">
+    <div class="panel-title">Choose a scenario</div>
+
+    <div class="scenario-selector">
+      <button class="scenario-btn active" data-scenario="house">House Price</button>
+      <button class="scenario-btn" data-scenario="therapy">Therapy Outcomes</button>
+      <button class="scenario-btn" data-scenario="custom">Custom</button>
+    </div>
+
+    <div id="customControls" style="display:none;">
+      <div class="slider-row">
+        <div class="slider-label">True effect (β)</div>
+        <input type="range" id="betaSlider" min="0.1" max="5" step="0.1" value="1.0">
+        <div class="slider-value" id="betaVal">1.0</div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">Scale of X (std dev)</div>
+        <input type="range" id="scaleSlider" min="0.1" max="1000" step="1" value="10">
+        <div class="slider-value" id="scaleVal">10</div>
+      </div>
+    </div>
+
+    <div class="comparison">
+      <div class="compare-card raw">
+        <div class="compare-title">Raw (unstandardized)</div>
+        <div class="stat-row">
+          <div class="stat-name">Variable name</div>
+          <div class="stat-val" id="rawName">—</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-name">Unit</div>
+          <div class="stat-val" id="rawUnit">—</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-name">Std deviation</div>
+          <div class="stat-val" id="rawSD">—</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-name">Coefficient β</div>
+          <div class="stat-val highlight" id="rawCoef">—</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-name">Interpretation</div>
+          <div class="stat-val" id="rawInterp" style="font-size:0.8rem; color: var(--sand);">—</div>
+        </div>
+      </div>
+      <div class="compare-card standardized">
+        <div class="compare-title">Standardized (z-score)</div>
+        <div class="stat-row">
+          <div class="stat-name">Variable name</div>
+          <div class="stat-val" id="stdName">—</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-name">Unit</div>
+          <div class="stat-val" id="stdUnit">std deviations</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-name">Std deviation</div>
+          <div class="stat-val" id="stdSD">1.00</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-name">Coefficient β*</div>
+          <div class="stat-val highlight" id="stdCoef">—</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-name">Interpretation</div>
+          <div class="stat-val" id="stdInterp" style="font-size:0.8rem; color: var(--sand);">—</div>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="barCanvas" width="700" height="160"></canvas>
+
+    <div class="key-insight" id="keyInsight">—</div>
+
+    <div class="interpretation" id="interpretation">—</div>
+  </div>
+
+  <p class="note">
+    z = (x − mean) / std_dev &nbsp;·&nbsp; 
+    The standardized coefficient β* = β × std_dev(X) / std_dev(Y) &nbsp;·&nbsp;
+    Same relationship. Different scale. Now comparable.
+  </p>
+
+</div>
+
+<script>
+const SCENARIOS = {
+  house: {
+    variables: [
+      {
+        name: 'Square footage', unit: 'sq ft', sd: 500, beta: 150,
+        rawInterp: '+1 sq ft → +$150 in price',
+        stdInterp: '+1 std dev → larger impact'
+      },
+      {
+        name: 'Bedrooms', unit: 'count', sd: 1.2, beta: 8000,
+        rawInterp: '+1 bedroom → +$8,000 in price',
+        stdInterp: '+1 std dev → comparable impact'
+      },
+      {
+        name: 'Distance to city', unit: 'km', sd: 8, beta: -3200,
+        rawInterp: '+1 km away → −$3,200 in price',
+        stdInterp: '+1 std dev → negative impact'
+      }
+    ],
+    outcomeSD: 85000,
+    title: 'Which variable matters most for house price?'
+  },
+  therapy: {
+    variables: [
+      {
+        name: 'Session frequency', unit: 'sessions/month', sd: 2.1, beta: 4.2,
+        rawInterp: '+1 session/month → +4.2 pts outcome',
+        stdInterp: '+1 std dev → standardized effect'
+      },
+      {
+        name: 'Alliance score', unit: 'scale 1–10', sd: 1.8, beta: 6.5,
+        rawInterp: '+1 alliance point → +6.5 pts outcome',
+        stdInterp: '+1 std dev → standardized effect'
+      },
+      {
+        name: 'Weeks in therapy', unit: 'weeks', sd: 12, beta: 0.9,
+        rawInterp: '+1 week → +0.9 pts outcome',
+        stdInterp: '+1 std dev → standardized effect'
+      }
+    ],
+    outcomeSD: 18,
+    title: 'Which variable matters most for therapy outcomes?'
+  }
+};
+
+let currentScenario = 'house';
+let customBeta = 1.0;
+let customScale = 10;
+
+const GOLD = '#d4a843';
+const TEAL = '#7ecfb3';
+const TERRA = '#c0694a';
+const SAND = '#c8a96e';
+const PARCHMENT = '#f2e8d0';
+
+function computeStdCoef(beta, sdX, sdY) {
+  return beta * sdX / sdY;
+}
+
+function drawBars(rawCoefs, stdCoefs, labels) {
+  const canvas = document.getElementById('barCanvas');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(0, 0, w, h);
+
+  const n = rawCoefs.length;
+  const padL = 120, padR = 20, padT = 20, padB = 30;
+  const barAreaW = w - padL - padR;
+  const groupH = (h - padT - padB) / n;
+  const barH = Math.min(groupH * 0.3, 18);
+  const gap = barH * 0.4;
+
+  const allVals = [...rawCoefs.map(Math.abs), ...stdCoefs.map(Math.abs)];
+  const maxVal = Math.max(...allVals) || 1;
+
+  rawCoefs.forEach((raw, i) => {
+    const std = stdCoefs[i];
+    const cy = padT + i * groupH + groupH / 2;
+
+    // label
+    ctx.fillStyle = SAND + 'cc';
+    ctx.font = '11px Amiri, serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(labels[i], padL - 8, cy + 4);
+
+    // raw bar
+    const rawW = (Math.abs(raw) / maxVal) * barAreaW * 0.85;
+    const rawX = raw < 0 ? padL - rawW : padL;
+    ctx.fillStyle = TERRA + 'cc';
+    ctx.fillRect(rawX, cy - barH - gap/2, rawW, barH);
+
+    // std bar
+    const stdW = (Math.abs(std) / maxVal) * barAreaW * 0.85;
+    const stdX = std < 0 ? padL - stdW : padL;
+    ctx.fillStyle = TEAL + 'cc';
+    ctx.fillRect(stdX, cy + gap/2, stdW, barH);
+
+    // values
+    ctx.fillStyle = TERRA;
+    ctx.font = '10px Amiri, serif';
+    ctx.textAlign = raw < 0 ? 'right' : 'left';
+    const rawLabelX = raw < 0 ? rawX - 3 : rawX + rawW + 3;
+    ctx.fillText(raw.toFixed(1), rawLabelX, cy - gap/2 - 2);
+
+    ctx.fillStyle = TEAL;
+    ctx.textAlign = std < 0 ? 'right' : 'left';
+    const stdLabelX = std < 0 ? stdX - 3 : stdX + stdW + 3;
+    ctx.fillText(std.toFixed(2), stdLabelX, cy + gap/2 + barH - 2);
+  });
+
+  // center line
+  ctx.strokeStyle = 'rgba(212,168,67,0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT); ctx.lineTo(padL, h - padB);
+  ctx.stroke();
+
+  // legend
+  ctx.fillStyle = TERRA + 'cc';
+  ctx.fillRect(padL + 10, h - padB + 6, 12, 6);
+  ctx.fillStyle = PARCHMENT + '88';
+  ctx.font = '9px Amiri, serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('Raw β', padL + 26, h - padB + 12);
+
+  ctx.fillStyle = TEAL + 'cc';
+  ctx.fillRect(padL + 80, h - padB + 6, 12, 6);
+  ctx.fillStyle = PARCHMENT + '88';
+  ctx.fillText('Std β*', padL + 96, h - padB + 12);
+}
+
+function renderScenario(scenarioKey) {
+  if (scenarioKey === 'custom') {
+    renderCustom();
+    return;
+  }
+
+  const s = SCENARIOS[scenarioKey];
+  const rawCoefs = s.variables.map(v => v.beta);
+  const stdCoefs = s.variables.map(v => computeStdCoef(v.beta, v.sd, s.outcomeSD));
+  const labels = s.variables.map(v => v.name);
+
+  // Show first variable in cards
+  const v = s.variables[0];
+  const sc = stdCoefs[0];
+
+  document.getElementById('rawName').textContent = v.name;
+  document.getElementById('rawUnit').textContent = v.unit;
+  document.getElementById('rawSD').textContent = v.sd.toLocaleString();
+  document.getElementById('rawCoef').textContent = v.beta.toLocaleString();
+  document.getElementById('rawInterp').textContent = v.rawInterp;
+
+  document.getElementById('stdName').textContent = v.name + ' (z)';
+  document.getElementById('stdCoef').textContent = sc.toFixed(3);
+  document.getElementById('stdInterp').textContent = '+1 std dev → ' + (sc * s.outcomeSD).toFixed(0) + ' units outcome';
+
+  // Find most important
+  const maxStd = Math.max(...stdCoefs.map(Math.abs));
+  const maxIdx = stdCoefs.findIndex(v => Math.abs(v) === maxStd);
+  const maxLabel = labels[maxIdx];
+
+  document.getElementById('keyInsight').textContent =
+    s.title + ' — Standardized coefficients reveal: "' + maxLabel + '" has the strongest effect.';
+
+  document.getElementById('interpretation').textContent =
+    'Raw coefficients cannot be compared directly — different units, different scales. ' +
+    'Standardized coefficients put all variables on the same footing. ' +
+    'Now you can ask: which predictor matters most?';
+
+  drawBars(rawCoefs, stdCoefs, labels);
+}
+
+function renderCustom() {
+  const beta = customBeta;
+  const sdX = customScale;
+  const sdY = 10;
+  const stdCoef = computeStdCoef(beta, sdX, sdY);
+
+  document.getElementById('rawName').textContent = 'Your variable';
+  document.getElementById('rawUnit').textContent = 'original units';
+  document.getElementById('rawSD').textContent = sdX.toFixed(1);
+  document.getElementById('rawCoef').textContent = beta.toFixed(2);
+  document.getElementById('rawInterp').textContent = '+1 unit → +' + beta.toFixed(2) + ' outcome';
+
+  document.getElementById('stdName').textContent = 'Your variable (z)';
+  document.getElementById('stdCoef').textContent = stdCoef.toFixed(3);
+  document.getElementById('stdInterp').textContent = '+1 std dev → +' + (stdCoef * sdY).toFixed(2) + ' outcome';
+
+  document.getElementById('keyInsight').textContent =
+    'When scale is ' + sdX.toFixed(0) + ' units, β = ' + beta.toFixed(2) +
+    ' looks ' + (beta > 1 ? 'large' : 'small') + ' in raw form. ' +
+    'Standardized: β* = ' + stdCoef.toFixed(3) + '. ' +
+    (Math.abs(stdCoef) > 0.5 ? 'This is a meaningful effect.' : 'This is a modest effect relative to outcome variance.');
+
+  document.getElementById('interpretation').textContent =
+    'Change the scale of X without changing the true relationship — watch the raw coefficient change while the standardized one stays stable.';
+
+  drawBars([beta], [stdCoef], ['Your variable']);
+}
+
+// Scenario buttons
+document.querySelectorAll('.scenario-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentScenario = btn.dataset.scenario;
+    const cc = document.getElementById('customControls');
+    cc.style.display = currentScenario === 'custom' ? 'block' : 'none';
+    renderScenario(currentScenario);
+  });
+});
+
+document.getElementById('betaSlider').addEventListener('input', function() {
+  customBeta = parseFloat(this.value);
+  document.getElementById('betaVal').textContent = customBeta.toFixed(1);
+  renderCustom();
+});
+
+document.getElementById('scaleSlider').addEventListener('input', function() {
+  customScale = parseFloat(this.value);
+  document.getElementById('scaleVal').textContent = customScale.toFixed(0);
+  renderCustom();
+});
+
+renderScenario('house');
+</script>
+</body>
+</html>
