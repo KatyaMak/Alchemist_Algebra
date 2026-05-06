@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OLS Regression Explorer · The Alchemist's Algebra</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --sand: #c8a96e; --midnight: #0d0a05; --parchment: #f2e8d0; --gold: #d4a843; --gold-light: #e8c96a; --teal: #7ecfb3; --red: #e06060; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--midnight); color: var(--parchment); font-family: 'Amiri', serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px 60px; }
+  .mudejar-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.05; background-image: repeating-conic-gradient(from 0deg at 50% 50%, var(--gold) 0deg 15deg, transparent 15deg 30deg, var(--sand) 30deg 45deg, transparent 45deg 60deg); background-size: 80px 80px; z-index: 0; pointer-events: none; }
+  .content { position: relative; z-index: 1; width: 100%; max-width: 800px; }
+  .header { text-align: center; margin-bottom: 28px; }
+  .nav-back { font-family: 'Amiri', serif; font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--sand); opacity: 0.5; text-decoration: none; display: inline-block; margin-bottom: 12px; transition: opacity 0.3s; }
+  .nav-back:hover { opacity: 0.85; }
+  h1 { font-family: 'Cinzel Decorative', serif; font-size: 1.4rem; color: var(--gold); margin-bottom: 6px; text-shadow: 0 0 30px rgba(212,168,67,0.3); }
+  .header p { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.92rem; color: var(--sand); opacity: 0.8; }
+  .divider { display: flex; align-items: center; gap: 16px; margin: 18px 0; }
+  .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+  .divider-diamond { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+
+  .canvas-wrap { border: 1px solid rgba(212,168,67,0.2); background: rgba(0,0,0,0.45); padding: 4px; margin-bottom: 14px; cursor: crosshair; position: relative; }
+  canvas { display: block; width: 100%; }
+  .canvas-hint { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.75rem; color: var(--sand); opacity: 0.35; text-align: center; margin-top: 6px; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
+  @media (max-width: 560px) { .stats-row { grid-template-columns: repeat(3, 1fr); } }
+  .stat { border: 1px solid rgba(212,168,67,0.12); padding: 8px 12px; background: rgba(212,168,67,0.02); }
+  .stat-label { font-family: 'Amiri', serif; font-size: 0.58rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); opacity: 0.45; margin-bottom: 4px; }
+  .stat-value { font-family: 'Cinzel Decorative', serif; font-size: 0.82rem; color: var(--gold-light); }
+
+  .controls-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .ctrl-btn { font-family: 'Amiri', serif; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sand); border: 1px solid rgba(200,169,110,0.22); padding: 5px 14px; cursor: pointer; background: transparent; transition: all 0.3s; }
+  .ctrl-btn:hover { color: var(--gold-light); border-color: rgba(212,168,67,0.5); background: rgba(212,168,67,0.05); }
+  .ctrl-btn.active { color: var(--gold); border-color: rgba(212,168,67,0.7); background: rgba(212,168,67,0.08); }
+
+  /* Normal equations panel */
+  .equations-panel { border: 1px solid rgba(212,168,67,0.15); padding: 18px 22px; background: rgba(212,168,67,0.02); margin-bottom: 16px; }
+  .eq-title { font-family: 'Amiri', serif; font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); opacity: 0.5; margin-bottom: 14px; }
+  .eq-body { font-family: 'IM Fell English', serif; font-size: 0.95rem; line-height: 1.9; color: var(--parchment); opacity: 0.85; }
+  .eq-body em { color: var(--gold-light); font-style: italic; }
+  .eq-body .formula { font-family: 'Cinzel Decorative', serif; font-size: 0.82rem; color: var(--gold); display: block; margin: 10px 0; letter-spacing: 0.05em; }
+  .eq-body .computed { font-family: 'Courier New', monospace; font-size: 0.78rem; color: var(--teal); background: rgba(26,92,74,0.12); border: 1px solid rgba(26,92,74,0.2); padding: 8px 12px; display: block; margin: 8px 0; }
+  .eq-note { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.82rem; color: var(--sand); opacity: 0.55; margin-top: 10px; }
+
+  .insight { border-left: 2px solid rgba(212,168,67,0.25); padding: 16px 20px; background: rgba(212,168,67,0.02); }
+  .insight p { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.9rem; line-height: 1.75; color: var(--parchment); opacity: 0.82; margin-bottom: 0.7em; }
+  .insight p:last-child { margin-bottom: 0; }
+  .insight em { color: var(--gold-light); }
+</style>
+</head>
+<body>
+<div class="mudejar-bg"></div>
+<div class="content">
+  <div class="header">
+    <a href="../book_of_directions.html" class="nav-back">← The Book of Directions</a>
+    <h1>OLS Regression Explorer</h1>
+    <p>Click to place points — the best-fit line and normal equations update in real time</p>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="canvas"></canvas>
+  </div>
+  <div class="canvas-hint">Click anywhere to add a point · Drag existing points · Right-click to remove</div>
+
+  <div class="stats-row">
+    <div class="stat"><div class="stat-label">Points (n)</div><div class="stat-value" id="statN">0</div></div>
+    <div class="stat"><div class="stat-label">Slope (β₁)</div><div class="stat-value" id="statSlope">—</div></div>
+    <div class="stat"><div class="stat-label">Intercept (β₀)</div><div class="stat-value" id="statIntercept">—</div></div>
+    <div class="stat"><div class="stat-label">R²</div><div class="stat-value" id="statR2">—</div></div>
+    <div class="stat"><div class="stat-label">MSE</div><div class="stat-value" id="statMSE">—</div></div>
+  </div>
+
+  <div class="controls-row">
+    <button class="ctrl-btn active" id="btnResiduals" onclick="toggle('residuals')">Residuals</button>
+    <button class="ctrl-btn active" id="btnLine" onclick="toggle('line')">Best-fit line</button>
+    <button class="ctrl-btn" id="btnCI" onclick="toggle('ci')">Confidence band</button>
+    <button class="ctrl-btn" onclick="addRandom()">Add random data</button>
+    <button class="ctrl-btn" onclick="clearPoints()">Clear</button>
+  </div>
+
+  <!-- Normal equations -->
+  <div class="equations-panel">
+    <div class="eq-title">The Normal Equations · How the Transpose Makes This Solvable</div>
+    <div class="eq-body">
+      The system <em>Xβ = y</em> has more equations than unknowns — one per data point, only two unknowns (slope and intercept). No exact solution exists. Multiplying both sides by Xᵀ creates a square solvable system:
+      <span class="formula">β = (XᵀX)⁻¹ Xᵀy</span>
+      <span class="computed" id="xTx">XᵀX = [ — ]  ·  Xᵀy = [ — ]</span>
+      <span class="computed" id="betaComputed">β = [ β₀ = —,  β₁ = — ]</span>
+      <div class="eq-note">The transpose is not bookkeeping — it is the operation that converts an impossible question into an honest one. XᵀX is always square. When it is invertible, the best-fit coefficients exist uniquely.</div>
+    </div>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+  <div class="insight">
+    <p>No single line passes through all the points. The system is overdetermined — more constraints than degrees of freedom. OLS finds the line that is <em>least wrong</em>: it minimizes the sum of squared vertical distances between each point and the line. Those distances are the residuals.</p>
+    <p>The matrix transpose is what makes this answerable. The data matrix X has more rows (observations) than columns (parameters). XᵀX is square — same number of rows and columns — and invertible when the data has enough variation. <em>The transpose turns the impossible into the honest best guess.</em> Watch R² approach 1 as the points align, and fall toward 0 as they scatter.</p>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const wrap = document.getElementById('canvasWrap');
+
+  let points = [];
+  let show = { residuals: true, line: true, ci: false };
+  let dragging = null;
+
+  function resize() {
+    canvas.width = wrap.clientWidth - 8;
+    canvas.height = Math.round(canvas.width * 0.55);
+    canvas.style.height = canvas.height + 'px';
+    draw();
+  }
+
+  function toggle(key) {
+    show[key] = !show[key];
+    document.getElementById('btn' + key.charAt(0).toUpperCase() + key.slice(1)).classList.toggle('active', show[key]);
+    draw();
+  }
+
+  // OLS computation
+  function ols(pts) {
+    if (pts.length < 2) return null;
+    const n = pts.length;
+    const sumX = pts.reduce((s, p) => s + p.x, 0);
+    const sumY = pts.reduce((s, p) => s + p.y, 0);
+    const sumXX = pts.reduce((s, p) => s + p.x*p.x, 0);
+    const sumXY = pts.reduce((s, p) => s + p.x*p.y, 0);
+    const denom = n*sumXX - sumX*sumX;
+    if (Math.abs(denom) < 1e-10) return null;
+    const b1 = (n*sumXY - sumX*sumY) / denom;
+    const b0 = (sumY - b1*sumX) / n;
+    const yMean = sumY / n;
+    const ssTot = pts.reduce((s, p) => s + (p.y - yMean)**2, 0);
+    const ssRes = pts.reduce((s, p) => s + (p.y - (b0 + b1*p.x))**2, 0);
+    const r2 = ssTot > 0 ? 1 - ssRes/ssTot : 0;
+    const mse = ssRes / n;
+    return { b0, b1, r2, mse, sumX, sumY, sumXX, sumXY, n };
+  }
+
+  // Data coordinates from screen
+  function toData(sx, sy) {
+    const W = canvas.width, H = canvas.height;
+    return { x: (sx - W*0.1) / (W*0.8) * 10, y: 10 - (sy - H*0.1) / (H*0.8) * 10 };
+  }
+
+  function toScreen(dx, dy) {
+    const W = canvas.width, H = canvas.height;
+    return {
+      x: W*0.1 + dx/10 * W*0.8,
+      y: H*0.1 + (1 - dy/10) * H*0.8
+    };
+  }
+
+  function draw() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(8,6,3,0.88)';
+    ctx.fillRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(212,168,67,0.07)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 10; i++) {
+      const sp = toScreen(i, 0), sp2 = toScreen(i, 10);
+      ctx.beginPath(); ctx.moveTo(sp.x, H*0.1); ctx.lineTo(sp.x, H*0.9); ctx.stroke();
+      const sp3 = toScreen(0, i), sp4 = toScreen(10, i);
+      ctx.beginPath(); ctx.moveTo(W*0.1, sp3.y); ctx.lineTo(W*0.9, sp3.y); ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(212,168,67,0.25)';
+    ctx.lineWidth = 1;
+    const orig = toScreen(0, 0);
+    ctx.beginPath(); ctx.moveTo(W*0.1, orig.y); ctx.lineTo(W*0.9, orig.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(orig.x, H*0.1); ctx.lineTo(orig.x, H*0.9); ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = 'rgba(200,169,110,0.3)';
+    ctx.font = '10px Amiri, serif';
+    ctx.textAlign = 'center';
+    for (let i = 0; i <= 10; i += 2) {
+      const sp = toScreen(i, 0);
+      ctx.fillText(i, sp.x, H*0.9 + 14);
+    }
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 10; i += 2) {
+      const sp = toScreen(0, i);
+      ctx.fillText(i, W*0.1 - 4, sp.y + 3);
+    }
+    ctx.textAlign = 'left';
+
+    const result = ols(points);
+
+    // Confidence band
+    if (show.ci && result && points.length >= 3) {
+      const { b0, b1, mse, n, sumX, sumXX } = result;
+      const se = Math.sqrt(mse);
+      ctx.fillStyle = 'rgba(212,168,67,0.06)';
+      ctx.beginPath();
+      let first = true;
+      for (let xi = 0; xi <= 10.1; xi += 0.2) {
+        const leverage = 1/n + (xi - sumX/n)**2 / (sumXX - sumX**2/n);
+        const ci = 1.96 * se * Math.sqrt(leverage);
+        const sp = toScreen(xi, b0 + b1*xi + ci);
+        first ? ctx.moveTo(sp.x, sp.y) : ctx.lineTo(sp.x, sp.y);
+        first = false;
+      }
+      for (let xi = 10; xi >= -0.1; xi -= 0.2) {
+        const leverage = 1/n + (xi - sumX/n)**2 / (sumXX - sumX**2/n);
+        const ci = 1.96 * se * Math.sqrt(leverage);
+        const sp = toScreen(xi, b0 + b1*xi - ci);
+        ctx.lineTo(sp.x, sp.y);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Best-fit line
+    if (show.line && result) {
+      const { b0, b1 } = result;
+      const p1 = toScreen(0, b0);
+      const p2 = toScreen(10, b0 + b1*10);
+      ctx.strokeStyle = 'rgba(232,201,106,0.9)';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = 'rgba(232,201,106,0.4)';
+      ctx.shadowBlur = 6;
+      ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // Residuals
+    if (show.residuals && result) {
+      const { b0, b1 } = result;
+      ctx.strokeStyle = 'rgba(192,105,74,0.6)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      points.forEach(p => {
+        const pred = b0 + b1*p.x;
+        const sp = toScreen(p.x, p.y);
+        const sp2 = toScreen(p.x, pred);
+        ctx.beginPath(); ctx.moveTo(sp.x, sp.y); ctx.lineTo(sp2.x, sp2.y); ctx.stroke();
+      });
+      ctx.setLineDash([]);
+    }
+
+    // Points
+    points.forEach((p, i) => {
+      const sp = toScreen(p.x, p.y);
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, i === dragging ? 9 : 6, 0, Math.PI*2);
+      ctx.fillStyle = i === dragging ? 'rgba(232,201,106,1)' : 'rgba(212,168,67,0.85)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(13,10,5,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+
+    updateStats(result);
+  }
+
+  function updateStats(result) {
+    document.getElementById('statN').textContent = points.length;
+    if (!result) {
+      ['statSlope','statIntercept','statR2','statMSE'].forEach(id => document.getElementById(id).textContent = '—');
+      document.getElementById('xTx').textContent = 'XᵀX = [ — ]  ·  Xᵀy = [ — ]';
+      document.getElementById('betaComputed').textContent = 'β = [ β₀ = —,  β₁ = — ]';
+      return;
+    }
+    const { b0, b1, r2, mse, n, sumX, sumXX, sumXY, sumY } = result;
+    document.getElementById('statSlope').textContent = b1.toFixed(4);
+    document.getElementById('statIntercept').textContent = b0.toFixed(4);
+    document.getElementById('statR2').textContent = r2.toFixed(4);
+    document.getElementById('statMSE').textContent = mse.toFixed(4);
+
+    document.getElementById('xTx').textContent =
+      `XᵀX = [[${n}, ${sumX.toFixed(2)}], [${sumX.toFixed(2)}, ${sumXX.toFixed(2)}]]  ·  Xᵀy = [${sumY.toFixed(2)}, ${sumXY.toFixed(2)}]`;
+    document.getElementById('betaComputed').textContent =
+      `β = (XᵀX)⁻¹Xᵀy = [ β₀ = ${b0.toFixed(4)},  β₁ = ${b1.toFixed(4)} ]`;
+  }
+
+  function hitTest(mx, my) {
+    for (let i = 0; i < points.length; i++) {
+      const sp = toScreen(points[i].x, points[i].y);
+      if (Math.sqrt((mx-sp.x)**2 + (my-sp.y)**2) < 12) return i;
+    }
+    return -1;
+  }
+
+  wrap.addEventListener('mousedown', e => {
+    if (e.button === 2) return;
+    const r = canvas.getBoundingClientRect();
+    const mx = (e.clientX - r.left) * (canvas.width / r.width);
+    const my = (e.clientY - r.top) * (canvas.height / r.height);
+    const hit = hitTest(mx, my);
+    if (hit >= 0) { dragging = hit; return; }
+    const d = toData(mx, my);
+    if (d.x >= 0 && d.x <= 10 && d.y >= 0 && d.y <= 10) {
+      points.push(d);
+      dragging = points.length - 1;
+    }
+    draw();
+  });
+
+  wrap.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    const r = canvas.getBoundingClientRect();
+    const mx = (e.clientX - r.left) * (canvas.width / r.width);
+    const my = (e.clientY - r.top) * (canvas.height / r.height);
+    const hit = hitTest(mx, my);
+    if (hit >= 0) { points.splice(hit, 1); draw(); }
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (dragging === null) return;
+    const r = canvas.getBoundingClientRect();
+    const mx = (e.clientX - r.left) * (canvas.width / r.width);
+    const my = (e.clientY - r.top) * (canvas.height / r.height);
+    const d = toData(mx, my);
+    points[dragging] = { x: Math.max(0, Math.min(10, d.x)), y: Math.max(0, Math.min(10, d.y)) };
+    draw();
+  });
+
+  window.addEventListener('mouseup', () => { dragging = null; draw(); });
+
+  function addRandom() {
+    const slope = (Math.random() - 0.5) * 1.5;
+    const intercept = Math.random() * 4 + 1;
+    for (let i = 0; i < 8; i++) {
+      const x = Math.random() * 9 + 0.5;
+      const y = Math.max(0.1, Math.min(9.9, intercept + slope*x + (Math.random()-0.5)*2));
+      points.push({ x, y });
+    }
+    draw();
+  }
+
+  function clearPoints() { points = []; draw(); }
+
+  window.addEventListener('resize', resize);
+  resize();
+</script>
+</body>
+</html>

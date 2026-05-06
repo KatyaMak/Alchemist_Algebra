@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vector & Dot Product Explorer · The Alchemist's Algebra</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #c8a96e; --midnight: #0d0a05; --parchment: #f2e8d0;
+    --gold: #d4a843; --gold-light: #e8c96a; --teal: #7ecfb3;
+    --vec-a: #e8c96a; --vec-b: #7ecfb3; --proj: #c0694a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--midnight); color: var(--parchment); font-family: 'Amiri', serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px 60px; }
+  .mudejar-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.05; background-image: repeating-conic-gradient(from 0deg at 50% 50%, var(--gold) 0deg 15deg, transparent 15deg 30deg, var(--sand) 30deg 45deg, transparent 45deg 60deg); background-size: 80px 80px; z-index: 0; pointer-events: none; }
+  .content { position: relative; z-index: 1; width: 100%; max-width: 800px; }
+  .header { text-align: center; margin-bottom: 30px; }
+  .nav-back { font-family: 'Amiri', serif; font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--sand); opacity: 0.5; text-decoration: none; display: inline-block; margin-bottom: 14px; transition: opacity 0.3s; }
+  .nav-back:hover { opacity: 0.85; }
+  h1 { font-family: 'Cinzel Decorative', serif; font-size: 1.4rem; color: var(--gold); margin-bottom: 6px; text-shadow: 0 0 30px rgba(212,168,67,0.3); }
+  .header p { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.92rem; color: var(--sand); opacity: 0.8; }
+  .divider { display: flex; align-items: center; gap: 16px; margin: 20px 0; }
+  .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+  .divider-diamond { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+
+  .canvas-wrap { border: 1px solid rgba(212,168,67,0.2); background: rgba(0,0,0,0.4); padding: 4px; margin-bottom: 18px; position: relative; cursor: crosshair; }
+  canvas { display: block; width: 100%; }
+  .drag-hint { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.75rem; color: var(--sand); opacity: 0.35; text-align: center; margin-top: 6px; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+  @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat { border: 1px solid rgba(212,168,67,0.15); padding: 10px 14px; background: rgba(212,168,67,0.02); }
+  .stat-label { font-family: 'Amiri', serif; font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); opacity: 0.5; margin-bottom: 5px; }
+  .stat-value { font-family: 'Cinzel Decorative', serif; font-size: 0.88rem; }
+  .stat-value.gold { color: var(--vec-a); }
+  .stat-value.teal { color: var(--vec-b); }
+  .stat-value.highlight { color: var(--gold-light); }
+  .stat-value.warn { color: #e06060; }
+
+  .cauchy-bar-wrap { margin-bottom: 18px; border: 1px solid rgba(212,168,67,0.15); padding: 14px 18px; background: rgba(212,168,67,0.02); }
+  .cauchy-label { font-family: 'Amiri', serif; font-size: 0.65rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); opacity: 0.5; margin-bottom: 10px; }
+  .bar-track { height: 6px; background: rgba(212,168,67,0.1); position: relative; margin-bottom: 6px; }
+  .bar-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--vec-a)); transition: width 0.1s; }
+  .bar-labels { display: flex; justify-content: space-between; font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.78rem; color: var(--sand); opacity: 0.6; }
+
+  .controls { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+  .control-row { display: flex; align-items: center; gap: 16px; }
+  .control-label { font-family: 'Amiri', serif; font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sand); opacity: 0.7; min-width: 80px; }
+  .vec-controls { display: flex; gap: 10px; flex: 1; }
+  .coord-input { font-family: 'Cinzel Decorative', serif; font-size: 0.8rem; width: 70px; padding: 5px 8px; background: rgba(212,168,67,0.05); border: 1px solid rgba(212,168,67,0.2); color: var(--gold-light); text-align: center; }
+  .coord-input:focus { outline: none; border-color: rgba(212,168,67,0.5); }
+  .dot-a { color: var(--vec-a); border-color: rgba(232,201,106,0.3); }
+  .dot-b { color: var(--vec-b); border-color: rgba(126,207,179,0.3); }
+
+  .toggle-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .toggle-btn { font-family: 'Amiri', serif; font-size: 0.72rem; letter-spacing: 0.1em; color: var(--sand); border: 1px solid rgba(200,169,110,0.25); padding: 4px 12px; cursor: pointer; background: transparent; transition: all 0.3s; }
+  .toggle-btn:hover { color: var(--gold-light); border-color: rgba(212,168,67,0.5); }
+  .toggle-btn.active { color: var(--gold); border-color: rgba(212,168,67,0.7); background: rgba(212,168,67,0.08); }
+
+  .insight { border-left: 2px solid rgba(212,168,67,0.25); padding: 16px 20px; background: rgba(212,168,67,0.02); }
+  .insight p { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.9rem; line-height: 1.75; color: var(--parchment); opacity: 0.82; margin-bottom: 0.7em; }
+  .insight p:last-child { margin-bottom: 0; }
+  .insight em { color: var(--gold-light); }
+</style>
+</head>
+<body>
+<div class="mudejar-bg"></div>
+<div class="content">
+  <div class="header">
+    <a href="../book_of_directions.html" class="nav-back">← The Book of Directions</a>
+    <h1>Vector & Dot Product Explorer</h1>
+    <p>Drag the arrowheads — watch the dot product, angle, and projection respond</p>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="canvas"></canvas>
+  </div>
+  <div class="drag-hint">Drag the arrowheads to move vectors · Or type coordinates below</div>
+
+  <div class="stats-grid">
+    <div class="stat">
+      <div class="stat-label">Vector a</div>
+      <div class="stat-value gold" id="statA">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Vector b</div>
+      <div class="stat-value teal" id="statB">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Dot Product a·b</div>
+      <div class="stat-value highlight" id="statDot">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Angle θ</div>
+      <div class="stat-value highlight" id="statAngle">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">|a| length</div>
+      <div class="stat-value gold" id="statLenA">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">|b| length</div>
+      <div class="stat-value teal" id="statLenB">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">|a||b| (max)</div>
+      <div class="stat-value highlight" id="statMax">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Projection of a onto b</div>
+      <div class="stat-value" id="statProj" style="color:var(--proj)">—</div>
+    </div>
+  </div>
+
+  <!-- Cauchy-Schwarz bar -->
+  <div class="cauchy-bar-wrap">
+    <div class="cauchy-label">Cauchy-Schwarz: |a·b| ≤ |a||b|</div>
+    <div class="bar-track"><div class="bar-fill" id="cauchyBar" style="width:50%"></div></div>
+    <div class="bar-labels">
+      <span>|a·b| = <span id="csLeft">—</span></span>
+      <span id="csMiddle">—</span>
+      <span>|a||b| = <span id="csRight">—</span></span>
+    </div>
+  </div>
+
+  <!-- Coordinate inputs -->
+  <div class="controls">
+    <div class="control-row">
+      <div class="control-label" style="color:var(--vec-a)">Vector a</div>
+      <div class="vec-controls">
+        <input type="number" class="coord-input dot-a" id="ax" value="3" step="0.5" oninput="fromInputs()">
+        <input type="number" class="coord-input dot-a" id="ay" value="2" step="0.5" oninput="fromInputs()">
+      </div>
+    </div>
+    <div class="control-row">
+      <div class="control-label" style="color:var(--vec-b)">Vector b</div>
+      <div class="vec-controls">
+        <input type="number" class="coord-input dot-b" id="bx" value="1" step="0.5" oninput="fromInputs()">
+        <input type="number" class="coord-input dot-b" id="by" value="3" step="0.5" oninput="fromInputs()">
+      </div>
+    </div>
+    <div class="control-row">
+      <div class="control-label">Show</div>
+      <div class="toggle-row">
+        <button class="toggle-btn active" id="btnProj" onclick="toggleShow('proj')">Projection</button>
+        <button class="toggle-btn active" id="btnAngle" onclick="toggleShow('angle')">Angle arc</button>
+        <button class="toggle-btn active" id="btnGrid" onclick="toggleShow('grid')">Grid</button>
+        <button class="toggle-btn active" id="btnLabels" onclick="toggleShow('labels')">Labels</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"><div class="divider-line"></div><div class="divider-diamond"></div><div class="divider-line"></div></div>
+
+  <div class="insight">
+    <p>A vector's coordinates are its shadows cast onto the axes — always shorter than the vector itself. When you multiply those shadows and sum them, the result is the dot product. And because shadows cannot outrun the object casting them, the dot product can never exceed the product of the two lengths. <em>This is Cauchy-Schwarz — not a formula imposed from outside, but a geometric fact the space refuses to violate.</em></p>
+    <p>Watch what happens when the vectors point the same direction: the dot product reaches |a||b|, the bar fills completely, and the angle is zero. When they are perpendicular, the dot product is zero — the vectors are completely silent to each other. <em>Perpendicularity, in the language of algebra, means dot product equals zero.</em></p>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const wrap = document.getElementById('canvasWrap');
+
+  let ax = 3, ay = 2, bx = 1, by = 3;
+  let show = { proj: true, angle: true, grid: true, labels: true };
+  let dragging = null;
+  const SCALE = 50; // pixels per unit
+
+  function resize() {
+    canvas.width = wrap.clientWidth - 8;
+    canvas.height = Math.round(canvas.width * 0.56);
+    canvas.style.height = canvas.height + 'px';
+    draw();
+  }
+
+  function cx() { return canvas.width / 2; }
+  function cy() { return canvas.height / 2; }
+
+  function toScreen(vx, vy) {
+    return { x: cx() + vx * SCALE, y: cy() - vy * SCALE };
+  }
+
+  function fromScreen(sx, sy) {
+    return { x: (sx - cx()) / SCALE, y: -(sy - cy()) / SCALE };
+  }
+
+  function dot(ax, ay, bx, by) { return ax * bx + ay * by; }
+  function len(x, y) { return Math.sqrt(x*x + y*y); }
+  function angle(ax, ay, bx, by) {
+    const d = dot(ax, ay, bx, by);
+    const l = len(ax, ay) * len(bx, by);
+    if (l === 0) return 0;
+    return Math.acos(Math.max(-1, Math.min(1, d / l)));
+  }
+
+  function drawArrow(x1, y1, x2, y2, color, width, label) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const l = Math.sqrt(dx*dx + dy*dy);
+    if (l < 1) return;
+    const ux = dx/l, uy = dy/l;
+    const headLen = 12, headAngle = Math.PI / 6;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Arrowhead
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - headLen*(ux*Math.cos(headAngle) - uy*Math.sin(headAngle)),
+               y2 - headLen*(uy*Math.cos(headAngle) + ux*Math.sin(headAngle)));
+    ctx.lineTo(x2 - headLen*(ux*Math.cos(headAngle) + uy*Math.sin(headAngle)),
+               y2 - headLen*(uy*Math.cos(headAngle) - ux*Math.sin(headAngle)));
+    ctx.closePath();
+    ctx.fill();
+
+    // Label
+    if (label && show.labels) {
+      ctx.fillStyle = color;
+      ctx.font = 'bold 13px IM Fell English, serif';
+      ctx.fillText(label, x2 + ux*10 + 6, y2 - uy*10 - 4);
+    }
+  }
+
+  function draw() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(8,6,3,0.85)';
+    ctx.fillRect(0, 0, W, H);
+
+    const ox = cx(), oy = cy();
+
+    // Grid
+    if (show.grid) {
+      ctx.strokeStyle = 'rgba(212,168,67,0.07)';
+      ctx.lineWidth = 1;
+      for (let i = -10; i <= 10; i++) {
+        const gx = ox + i * SCALE;
+        const gy = oy + i * SCALE;
+        ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+      }
+    }
+
+    // Axes
+    ctx.strokeStyle = 'rgba(212,168,67,0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(W, oy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox, 0); ctx.lineTo(ox, H); ctx.stroke();
+
+    // Axis labels
+    if (show.labels) {
+      ctx.fillStyle = 'rgba(200,169,110,0.35)';
+      ctx.font = '11px Amiri, serif';
+      ctx.fillText('x', W - 14, oy - 4);
+      ctx.fillText('y', ox + 4, 12);
+      // Tick marks
+      for (let i = -8; i <= 8; i++) {
+        if (i === 0) continue;
+        ctx.fillStyle = 'rgba(200,169,110,0.25)';
+        ctx.font = '9px Amiri, serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(i, ox + i*SCALE, oy + 12);
+        ctx.textAlign = 'right';
+        ctx.fillText(i, ox - 4, oy - i*SCALE + 3);
+      }
+      ctx.textAlign = 'left';
+    }
+
+    const sa = toScreen(ax, ay);
+    const sb = toScreen(bx, by);
+    const d = dot(ax, ay, bx, by);
+    const la = len(ax, ay);
+    const lb = len(bx, by);
+
+    // Angle arc
+    if (show.angle && la > 0.1 && lb > 0.1) {
+      const angA = Math.atan2(-ay, ax);
+      const angB = Math.atan2(-by, bx);
+      const arcR = Math.min(SCALE * 0.6, 30);
+      ctx.strokeStyle = 'rgba(212,168,67,0.45)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(ox, oy, arcR, Math.min(angA, angB), Math.max(angA, angB));
+      ctx.stroke();
+
+      // θ label
+      if (show.labels) {
+        const midAng = (angA + angB) / 2;
+        ctx.fillStyle = 'rgba(212,168,67,0.7)';
+        ctx.font = 'italic 12px IM Fell English, serif';
+        ctx.fillText('θ', ox + (arcR + 8) * Math.cos(midAng), oy + (arcR + 8) * Math.sin(midAng));
+      }
+    }
+
+    // Projection of a onto b
+    if (show.proj && lb > 0.01) {
+      const projLen = d / lb;
+      const bux = bx / lb, buy = by / lb;
+      const projX = projLen * bux, projY = projLen * buy;
+      const sp = toScreen(projX, projY);
+
+      // Projection line (dashed)
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = 'rgba(192,105,74,0.5)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(sa.x, sa.y);
+      ctx.lineTo(sp.x, sp.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Right angle marker at projection foot
+      const perpLen = 7;
+      const nx = -buy, ny = -bux; // perpendicular
+      ctx.strokeStyle = 'rgba(192,105,74,0.5)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(sp.x + nx*perpLen, sp.y + ny*perpLen);
+      ctx.lineTo(sp.x + nx*perpLen + bux*perpLen, sp.y + ny*perpLen + buy*perpLen);
+      ctx.lineTo(sp.x + bux*perpLen, sp.y + buy*perpLen);
+      ctx.stroke();
+
+      // Projection arrow along b
+      drawArrow(ox, oy, sp.x, sp.y, 'rgba(192,105,74,0.75)', 1.5,
+        show.labels ? `proj` : null);
+    }
+
+    // Vector b
+    drawArrow(ox, oy, sb.x, sb.y, '#7ecfb3', 2.5, show.labels ? 'b' : null);
+    // Vector a
+    drawArrow(ox, oy, sa.x, sa.y, '#e8c96a', 2.5, show.labels ? 'a' : null);
+
+    // Drag handles
+    [{ p: sa, c: '#e8c96a' }, { p: sb, c: '#7ecfb3' }].forEach(({ p, c }) => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = c;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(13,10,5,0.8)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+
+    updateStats();
+  }
+
+  function updateStats() {
+    const d = dot(ax, ay, bx, by);
+    const la = len(ax, ay);
+    const lb = len(bx, by);
+    const maxProd = la * lb;
+    const theta = angle(ax, ay, bx, by) * 180 / Math.PI;
+    const projLen = lb > 0 ? d / lb : 0;
+    const pct = maxProd > 0 ? Math.abs(d) / maxProd * 100 : 0;
+
+    document.getElementById('statA').textContent = `(${ax.toFixed(1)}, ${ay.toFixed(1)})`;
+    document.getElementById('statB').textContent = `(${bx.toFixed(1)}, ${by.toFixed(1)})`;
+    document.getElementById('statDot').textContent = d.toFixed(3);
+    document.getElementById('statDot').className = `stat-value ${d < 0 ? 'warn' : 'highlight'}`;
+    document.getElementById('statAngle').textContent = `${theta.toFixed(1)}°`;
+    document.getElementById('statLenA').textContent = la.toFixed(3);
+    document.getElementById('statLenB').textContent = lb.toFixed(3);
+    document.getElementById('statMax').textContent = maxProd.toFixed(3);
+    document.getElementById('statProj').textContent = projLen.toFixed(3);
+
+    document.getElementById('cauchyBar').style.width = pct.toFixed(1) + '%';
+    document.getElementById('csLeft').textContent = Math.abs(d).toFixed(3);
+    document.getElementById('csRight').textContent = maxProd.toFixed(3);
+    document.getElementById('csMiddle').textContent = `${pct.toFixed(1)}% of max`;
+  }
+
+  // Dragging
+  function hitTest(mx, my) {
+    const sa = toScreen(ax, ay);
+    const sb = toScreen(bx, by);
+    const dist = (p) => Math.sqrt((mx - p.x)**2 + (my - p.y)**2);
+    if (dist(sa) < 14) return 'a';
+    if (dist(sb) < 14) return 'b';
+    return null;
+  }
+
+  wrap.addEventListener('mousedown', e => {
+    const r = canvas.getBoundingClientRect();
+    const mx = (e.clientX - r.left) * (canvas.width / r.width);
+    const my = (e.clientY - r.top) * (canvas.height / r.height);
+    dragging = hitTest(mx, my);
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const r = canvas.getBoundingClientRect();
+    const mx = (e.clientX - r.left) * (canvas.width / r.width);
+    const my = (e.clientY - r.top) * (canvas.height / r.height);
+    const v = fromScreen(mx, my);
+    const snapped = { x: Math.round(v.x * 2) / 2, y: Math.round(v.y * 2) / 2 };
+    if (dragging === 'a') { ax = snapped.x; ay = snapped.y; document.getElementById('ax').value = ax; document.getElementById('ay').value = ay; }
+    if (dragging === 'b') { bx = snapped.x; by = snapped.y; document.getElementById('bx').value = bx; document.getElementById('by').value = by; }
+    draw();
+  });
+
+  window.addEventListener('mouseup', () => { dragging = null; });
+
+  // Touch
+  wrap.addEventListener('touchstart', e => {
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    const mx = (t.clientX - r.left) * (canvas.width / r.width);
+    const my = (t.clientY - r.top) * (canvas.height / r.height);
+    dragging = hitTest(mx, my);
+  }, { passive: true });
+
+  wrap.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    e.preventDefault();
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    const mx = (t.clientX - r.left) * (canvas.width / r.width);
+    const my = (t.clientY - r.top) * (canvas.height / r.height);
+    const v = fromScreen(mx, my);
+    if (dragging === 'a') { ax = Math.round(v.x*2)/2; ay = Math.round(v.y*2)/2; document.getElementById('ax').value = ax; document.getElementById('ay').value = ay; }
+    if (dragging === 'b') { bx = Math.round(v.x*2)/2; by = Math.round(v.y*2)/2; document.getElementById('bx').value = bx; document.getElementById('by').value = by; }
+    draw();
+  }, { passive: false });
+
+  window.addEventListener('touchend', () => { dragging = null; });
+
+  function fromInputs() {
+    ax = parseFloat(document.getElementById('ax').value) || 0;
+    ay = parseFloat(document.getElementById('ay').value) || 0;
+    bx = parseFloat(document.getElementById('bx').value) || 0;
+    by = parseFloat(document.getElementById('by').value) || 0;
+    draw();
+  }
+
+  function toggleShow(key) {
+    show[key] = !show[key];
+    document.getElementById('btn' + key.charAt(0).toUpperCase() + key.slice(1)).classList.toggle('active', show[key]);
+    draw();
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+</script>
+</body>
+</html>
