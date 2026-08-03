@@ -59,6 +59,7 @@
   .series-nav a:hover { opacity: 1; }
   .series-nav .sep { margin: 0 14px; opacity: 0.4; }
   .series-nav .current { color: var(--gold); opacity: 0.9; }
+  .series-nav-home { margin-bottom: 10px; }
 
   /* Star panel SVG — celestial, different from compass and wave */
   .star-panel {
@@ -185,11 +186,12 @@
 <div class="container">
 
   <div class="series-nav">
-    <a href="index.html">The Alchemist's Algebra</a>
-    <span class="sep">·</span>
-    <span>Third Manuscript</span>
-    <span class="sep">·</span>
-    <span class="current">The Book of Uncertain Stars</span>
+    <div class="series-nav-home"><a href="index.html">← The Alchemist's Algebra</a></div>
+    <div class="series-nav-sub">
+      <span>Third Manuscript</span>
+      <span class="sep">·</span>
+      <span class="current">The Book of Uncertain Stars</span>
+    </div>
   </div>
 
   <!-- Celestial SVG — star map feel, different from compass and wave -->
